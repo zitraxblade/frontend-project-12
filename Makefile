@@ -2,4 +2,4 @@ build:
 	cd frontend && npm ci && npm run build
 
 start:
-	npx start-server -p $$PORT -s ./frontend/dist
+	npx start-server -a 0.0.0.0 -p $$PORT -s ./frontend/dist
