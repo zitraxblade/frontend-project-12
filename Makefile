@@ -1,5 +1,5 @@
 build:
-	cd frontend && npm install && npm run build
+	cd frontend && npm ci && npm run build
 
 start:
-	npx start-server -s ./frontend/dist
+	npx start-server -p $$PORT -s ./frontend/dist
