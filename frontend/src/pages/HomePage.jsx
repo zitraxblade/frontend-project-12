@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import { setChannels, setCurrentChannelId } from '../slices/channelsSlice.js';
-import { setMessages } from '../slices/messagesSlice.js';
+import { setMessages, addMessage } from '../slices/messagesSlice.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
+import { createSocket } from '../socket.js';
 
 export default function HomePage() {
   const auth = useAuth();
@@ -15,9 +16,18 @@ export default function HomePage() {
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
 
+  const username = auth.user?.username ?? 'unknown';
+
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
+
+  const socket = useMemo(() => createSocket(), []);
+
+  // init: load channels + messages
   useEffect(() => {
     const load = async () => {
       setLoadError(null);
@@ -48,6 +58,22 @@ export default function HomePage() {
     load();
   }, [dispatch, navigate, auth]);
 
+  // socket: receive new messages
+  useEffect(() => {
+    socket.connect();
+
+    const onNewMessage = (payload) => {
+      dispatch(addMessage(payload));
+    };
+
+    socket.on('newMessage', onNewMessage);
+
+    return () => {
+      socket.off('newMessage', onNewMessage);
+      socket.disconnect();
+    };
+  }, [socket, dispatch]);
+
   const currentChannel = useMemo(
     () => channels.find((c) => String(c.id) === String(currentChannelId)),
     [channels, currentChannelId],
@@ -61,6 +87,31 @@ export default function HomePage() {
   const onLogout = () => {
     auth.logOut();
     navigate('/login', { replace: true });
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    const body = text.trim();
+    if (!body || !currentChannelId) return;
+
+    setSendError(null);
+    setSending(true);
+
+    try {
+      await api.post('/messages', {
+        body,
+        channelId: String(currentChannelId),
+        username,
+      });
+
+      setText('');
+      // сообщение должно прийти всем через socket 'newMessage'
+    } catch (err) {
+      setSendError('Не удалось отправить сообщение. Проверьте соединение и попробуйте ещё раз.');
+    } finally {
+      setSending(false);
+    }
   };
 
   if (loading) return <div style={{ padding: 24 }}>Загрузка…</div>;
@@ -109,10 +160,25 @@ export default function HomePage() {
           ))}
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()} style={{ display: 'flex', gap: 8 }}>
-          <input type="text" placeholder="Введите сообщение..." style={{ flex: 1 }} disabled />
-          <button type="submit" disabled>Отправить</button>
+        <form onSubmit={onSubmit} style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            placeholder="Введите сообщение..."
+            style={{ flex: 1 }}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            disabled={sending}
+          />
+          <button type="submit" disabled={sending || text.trim().length === 0}>
+            {sending ? 'Отправка…' : 'Отправить'}
+          </button>
         </form>
+
+        {sendError && (
+          <div style={{ marginTop: 8, color: 'salmon' }}>
+            {sendError}
+          </div>
+        )}
       </main>
     </div>
   );
