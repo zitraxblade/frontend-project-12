@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Formik, Form, Field } from 'formik';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 
 export default function LoginPage() {
@@ -24,7 +24,6 @@ export default function LoginPage() {
             auth.logIn(res.data); // { token, username }
             navigate('/', { replace: true });
           } catch (e) {
-            // обычно при неверных кредах сервер отвечает 401
             setStatus('Неверные имя пользователя или пароль');
           } finally {
             setSubmitting(false);
@@ -54,11 +53,15 @@ export default function LoginPage() {
             )}
 
             <button type="submit" disabled={isSubmitting}>
-              Войти
+              {isSubmitting ? 'Вход…' : 'Войти'}
             </button>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
               Тестовый пользователь: admin / admin
+            </div>
+
+            <div style={{ marginTop: 12, fontSize: 12 }}>
+              Нет аккаунта? <Link to="/signup">Регистрация</Link>
             </div>
           </Form>
         )}
