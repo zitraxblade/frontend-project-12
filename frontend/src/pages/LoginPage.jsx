@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { Formik, Form, Field } from 'formik';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthProvider.jsx';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const auth = useAuth();
 
@@ -13,18 +15,18 @@ export default function LoginPage() {
 
   return (
     <div style={{ padding: 24, maxWidth: 360 }}>
-      <h1>Вход</h1>
+      <h1>{t('auth.loginTitle')}</h1>
 
       <Formik
         initialValues={{ username: '', password: '' }}
         onSubmit={async (values, { setSubmitting, setStatus }) => {
           setStatus(null);
           try {
-            const res = await axios.post('/api/v1/login', values); // proxy в vite уже настроен
-            auth.logIn(res.data); // { token, username }
+            const res = await axios.post('/api/v1/login', values);
+            auth.logIn(res.data);
             navigate('/', { replace: true });
           } catch (e) {
-            setStatus('Неверные имя пользователя или пароль');
+            setStatus(t('auth.wrongCreds'));
           } finally {
             setSubmitting(false);
           }
@@ -34,14 +36,14 @@ export default function LoginPage() {
           <Form>
             <div style={{ marginBottom: 12 }}>
               <label htmlFor="username" style={{ display: 'block', marginBottom: 6 }}>
-                Имя пользователя
+                {t('auth.username')}
               </label>
               <Field id="username" name="username" type="text" autoComplete="username" />
             </div>
 
             <div style={{ marginBottom: 12 }}>
               <label htmlFor="password" style={{ display: 'block', marginBottom: 6 }}>
-                Пароль
+                {t('auth.password')}
               </label>
               <Field id="password" name="password" type="password" autoComplete="current-password" />
             </div>
@@ -53,15 +55,15 @@ export default function LoginPage() {
             )}
 
             <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Вход…' : 'Войти'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
-              Тестовый пользователь: admin / admin
+              {t('auth.testUser')}
             </div>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
-              Нет аккаунта? <Link to="/signup">Регистрация</Link>
+              {t('auth.noAccount')} <Link to="/signup">{t('auth.registerLink')}</Link>
             </div>
           </Form>
         )}

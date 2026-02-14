@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/AuthProvider.jsx';
 
 export default function Header() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const navigate = useNavigate();
 
@@ -21,12 +23,12 @@ export default function Header() {
       }}
     >
       <Link to="/" style={{ textDecoration: 'none', fontWeight: 700 }}>
-        Hexlet Chat
+        {t('appName')}
       </Link>
 
       {auth.isAuthenticated && (
         <button type="button" onClick={onLogout}>
-          Выйти
+          {t('common.logout')}
         </button>
       )}
     </header>

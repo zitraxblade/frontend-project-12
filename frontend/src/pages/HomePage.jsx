@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import api from '../api.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { createSocket } from '../socket.js';
@@ -28,14 +29,19 @@ import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 const DEFAULT_CHANNEL_ID = '1';
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const dispatch = useDispatch();
+
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   const channels = useSelector((s) => s.channels.items);
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
 
-  const username = auth.user?.username ?? 'unknown';
+  const username = auth.username ?? 'unknown';
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -84,17 +90,19 @@ export default function HomePage() {
         dispatch(setChannels({ channels: ch, currentChannelId: curId }));
         dispatch(setMessages(msgs));
       } catch (e) {
-        setLoadError('Не удалось загрузить данные.');
+        setLoadError(t('chat.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     load();
-  }, [dispatch]);
+  }, [dispatch, t]);
 
   // socket: messages + channels events
   useEffect(() => {
+    if (!auth.isAuthenticated) return;
+
     socket.connect();
 
     const onNewMessage = (payload) => dispatch(addMessage(payload));
@@ -122,7 +130,7 @@ export default function HomePage() {
       socket.off('renameChannel', onRenameChannel);
       socket.disconnect();
     };
-  }, [socket, dispatch, currentChannelId]);
+  }, [socket, dispatch, currentChannelId, auth.isAuthenticated]);
 
   const openAdd = () => {
     setModalError(null);
@@ -149,12 +157,11 @@ export default function HomePage() {
     setModalSubmitting(true);
     try {
       const res = await api.post('/channels', { name });
-      const created = res.data; // { id, name, removable }
-      // событие newChannel придёт по socket всем, но создателя надо сразу перевести
+      const created = res.data;
       dispatch(setCurrentChannelId(created.id));
       closeModal();
     } catch (e) {
-      setModalError('Не удалось создать канал. Попробуйте ещё раз.');
+      setModalError(t('modals.createFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -170,7 +177,7 @@ export default function HomePage() {
       await api.patch(`/channels/${ch.id}`, { name });
       closeModal();
     } catch (e) {
-      setModalError('Не удалось переименовать. Попробуйте ещё раз.');
+      setModalError(t('modals.renameFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -185,9 +192,8 @@ export default function HomePage() {
     try {
       await api.delete(`/channels/${ch.id}`);
       closeModal();
-      // перенос в дефолтный канал произойдёт в обработчике socket removeChannel
     } catch (e) {
-      setModalError('Не удалось удалить канал. Попробуйте ещё раз.');
+      setModalError(t('modals.removeFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -208,22 +214,21 @@ export default function HomePage() {
         username,
       });
       setText('');
-      // сообщение придёт через socket
     } catch (err) {
-      setSendError('Не удалось отправить сообщение. Проверьте соединение.');
+      setSendError(t('chat.sendFailed'));
     } finally {
       setSending(false);
     }
   };
 
-  if (loading) return <div style={{ padding: 24 }}>Загрузка…</div>;
+  if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
   if (loadError) return <div style={{ padding: 24 }}>{loadError}</div>;
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-          <b>Каналы</b>
+          <b>{t('chat.channels')}</b>
           <Button size="sm" variant="outline-primary" onClick={openAdd}>
             +
           </Button>
@@ -233,7 +238,6 @@ export default function HomePage() {
           {channels.map((c) => {
             const isActive = String(c.id) === String(currentChannelId);
 
-            // дефолтные каналы без управления
             if (!c.removable) {
               return (
                 <Button
@@ -252,7 +256,6 @@ export default function HomePage() {
               );
             }
 
-            // removable: кнопка + dropdown
             return (
               <Dropdown as={ButtonGroup} key={c.id}>
                 <Button
@@ -271,8 +274,12 @@ export default function HomePage() {
                 <Dropdown.Toggle split variant={isActive ? 'primary' : 'light'} id={`ch-${c.id}`} />
 
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => openRename(c)}>Переименовать</Dropdown.Item>
-                  <Dropdown.Item onClick={() => openRemove(c)}>Удалить</Dropdown.Item>
+                  <Dropdown.Item onClick={() => openRename(c)}>
+                    {t('modals.renameChannelTitle')}
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={() => openRemove(c)}>
+                    {t('common.delete')}
+                  </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
             );
@@ -282,9 +289,11 @@ export default function HomePage() {
 
       <main style={{ flex: 1, padding: 12, display: 'flex', flexDirection: 'column' }}>
         <div style={{ borderBottom: '1px solid #ddd', paddingBottom: 8, marginBottom: 8 }}>
-          <b>{currentChannel ? `# ${currentChannel.name}` : 'Канал не выбран'}</b>
+          <b>
+            {currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}
+          </b>
           <div style={{ fontSize: 12, opacity: 0.7 }}>
-            сообщений: {visibleMessages.length}
+            {t('chat.messagesCount', { count: visibleMessages.length })}
           </div>
         </div>
 
@@ -299,14 +308,14 @@ export default function HomePage() {
         <form onSubmit={onSubmitMessage} style={{ display: 'flex', gap: 8 }}>
           <input
             type="text"
-            placeholder="Введите сообщение..."
+            placeholder={t('chat.messagePlaceholder')}
             style={{ flex: 1 }}
             value={text}
             onChange={(e) => setText(e.target.value)}
             disabled={sending}
           />
           <button type="submit" disabled={sending || text.trim().length === 0}>
-            {sending ? 'Отправка…' : 'Отправить'}
+            {sending ? t('common.sending') : t('common.send')}
           </button>
         </form>
 

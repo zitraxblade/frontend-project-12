@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 
@@ -11,6 +12,7 @@ export default function AddChannelModal({
   submitting,
   submitError,
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -21,10 +23,10 @@ export default function AddChannelModal({
     name: yup
       .string()
       .trim()
-      .min(3, 'От 3 до 20 символов')
-      .max(20, 'От 3 до 20 символов')
-      .required('Обязательное поле')
-      .test('unique', 'Должно быть уникальным', (value) => {
+      .min(3, t('validation.usernameLen'))
+      .max(20, t('validation.usernameLen'))
+      .required(t('validation.required'))
+      .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = (value ?? '').trim().toLowerCase();
         return !existingNames.includes(v);
       }),
@@ -33,7 +35,7 @@ export default function AddChannelModal({
   return (
     <Modal show={show} onHide={() => !submitting && onHide()} centered>
       <Modal.Header closeButton={!submitting}>
-        <Modal.Title>Добавить канал</Modal.Title>
+        <Modal.Title>{t('modals.addChannelTitle')}</Modal.Title>
       </Modal.Header>
 
       <Formik
@@ -47,14 +49,14 @@ export default function AddChannelModal({
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
               <Form.Group>
-                <Form.Label className="visually-hidden">Имя канала</Form.Label>
+                <Form.Label className="visually-hidden">{t('auth.username')}</Form.Label>
                 <Form.Control
                   ref={inputRef}
                   name="name"
                   value={values.name}
                   onChange={handleChange}
                   isInvalid={touched.name && !!errors.name}
-                  placeholder="Имя канала"
+                  placeholder={t('modals.addChannelTitle')}
                   disabled={submitting}
                 />
                 <Form.Control.Feedback type="invalid">
@@ -71,10 +73,10 @@ export default function AddChannelModal({
 
             <Modal.Footer>
               <Button variant="secondary" onClick={onHide} disabled={submitting}>
-                Отменить
+                {t('common.cancel')}
               </Button>
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? 'Отправка…' : 'Отправить'}
+                {submitting ? t('common.sending') : t('common.send')}
               </Button>
             </Modal.Footer>
           </Form>
