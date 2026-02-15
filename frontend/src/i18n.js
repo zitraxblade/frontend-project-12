@@ -5,6 +5,13 @@ const resources = {
   ru: {
     translation: {
       appName: 'Hexlet Chat',
+      toasts: {
+  loadFailed: 'Не удалось загрузить данные',
+  networkError: 'Ошибка сети',
+  channelCreated: 'Канал создан',
+  channelRenamed: 'Канал переименован',
+  channelRemoved: 'Канал удалён',
+},
 
       common: {
         logout: 'Выйти',

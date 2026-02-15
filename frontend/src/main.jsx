@@ -1,3 +1,4 @@
+import 'react-toastify/dist/ReactToastify.css';
 import './i18n.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';

@@ -2,6 +2,9 @@ import { Navigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
+
 import api from '../api.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { createSocket } from '../socket.js';
@@ -24,9 +27,8 @@ import AddChannelModal from '../components/modals/AddChannelModal.jsx';
 import RemoveChannelModal from '../components/modals/RemoveChannelModal.jsx';
 import RenameChannelModal from '../components/modals/RenameChannelModal.jsx';
 
-import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
-
 const DEFAULT_CHANNEL_ID = '1';
+const isNetworkError = (e) => !e?.response; // axios: no response => offline / refused / etc.
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -76,6 +78,7 @@ export default function HomePage() {
     const load = async () => {
       setLoadError(null);
       setLoading(true);
+
       try {
         const [channelsRes, messagesRes] = await Promise.all([
           api.get('/channels'),
@@ -91,6 +94,7 @@ export default function HomePage() {
         dispatch(setMessages(msgs));
       } catch (e) {
         setLoadError(t('chat.loadFailed'));
+        toast.error(t('toasts.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -155,13 +159,16 @@ export default function HomePage() {
   const submitAdd = async (name) => {
     setModalError(null);
     setModalSubmitting(true);
+
     try {
       const res = await api.post('/channels', { name });
       const created = res.data;
       dispatch(setCurrentChannelId(created.id));
+      toast.success(t('toasts.channelCreated'));
       closeModal();
     } catch (e) {
       setModalError(t('modals.createFailed'));
+      toast.error(isNetworkError(e) ? t('toasts.networkError') : t('modals.createFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -173,11 +180,14 @@ export default function HomePage() {
 
     setModalError(null);
     setModalSubmitting(true);
+
     try {
       await api.patch(`/channels/${ch.id}`, { name });
+      toast.success(t('toasts.channelRenamed'));
       closeModal();
     } catch (e) {
       setModalError(t('modals.renameFailed'));
+      toast.error(isNetworkError(e) ? t('toasts.networkError') : t('modals.renameFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -189,11 +199,14 @@ export default function HomePage() {
 
     setModalError(null);
     setModalSubmitting(true);
+
     try {
       await api.delete(`/channels/${ch.id}`);
+      toast.success(t('toasts.channelRemoved'));
       closeModal();
     } catch (e) {
       setModalError(t('modals.removeFailed'));
+      toast.error(isNetworkError(e) ? t('toasts.networkError') : t('modals.removeFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -214,8 +227,10 @@ export default function HomePage() {
         username,
       });
       setText('');
+      // сообщение придёт через socket
     } catch (err) {
       setSendError(t('chat.sendFailed'));
+      toast.error(t('toasts.networkError'));
     } finally {
       setSending(false);
     }
