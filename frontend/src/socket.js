@@ -1,15 +1,13 @@
 import { io } from 'socket.io-client';
 
-const getToken = () => localStorage.getItem('token');
-
 export const createSocket = () => io('/', {
   path: '/socket.io',
   autoConnect: false,
-  auth: {
-    token: getToken(),
-  },
 
-  // ВАЖНО: отключаем апгрейд до websocket, чтобы не было ошибки в консоли
+  // токен будем ставить в HomePage перед socket.connect()
+  auth: {},
+
+  // чтобы не ругался websocket в консоли (оставляем как у тебя)
   transports: ['polling'],
   upgrade: false,
 });

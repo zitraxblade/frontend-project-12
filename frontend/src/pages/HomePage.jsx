@@ -1,13 +1,14 @@
+import { toast } from 'react-toastify';
 import { Navigate } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
 import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 
 import api from '../api.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { createSocket } from '../socket.js';
+import { clean } from '../profanityFilter.js';
 
 import {
   setChannels,
@@ -28,12 +29,16 @@ import RemoveChannelModal from '../components/modals/RemoveChannelModal.jsx';
 import RenameChannelModal from '../components/modals/RenameChannelModal.jsx';
 
 const DEFAULT_CHANNEL_ID = '1';
-const isNetworkError = (e) => !e?.response; // axios: no response => offline / refused / etc.
 
 export default function HomePage() {
   const { t } = useTranslation();
   const auth = useAuth();
   const dispatch = useDispatch();
+
+  // ✅ сокет должен жить стабильно, а не пересоздаваться
+  const socketRef = useRef(null);
+  if (!socketRef.current) socketRef.current = createSocket();
+  const socket = socketRef.current;
 
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -56,8 +61,6 @@ export default function HomePage() {
   const [modalSubmitting, setModalSubmitting] = useState(false);
   const [modalError, setModalError] = useState(null);
 
-  const socket = useMemo(() => createSocket(), []);
-
   const existingChannelNames = useMemo(
     () => channels.map((c) => c.name.trim().toLowerCase()),
     [channels],
@@ -73,8 +76,10 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // init: load channels + messages
+  // ✅ INIT: грузим только когда есть токен
   useEffect(() => {
+    if (!auth.token) return;
+
     const load = async () => {
       setLoadError(null);
       setLoading(true);
@@ -101,18 +106,20 @@ export default function HomePage() {
     };
 
     load();
-  }, [dispatch, t]);
+  }, [auth.token, dispatch, t]);
 
-  // socket: messages + channels events
+  // ✅ SOCKET: перед connect всегда кладём актуальный token
   useEffect(() => {
-    if (!auth.isAuthenticated) return;
+    if (!auth.token) return;
 
+    socket.auth = { token: auth.token };
     socket.connect();
 
     const onNewMessage = (payload) => dispatch(addMessage(payload));
     const onNewChannel = (payload) => dispatch(addChannel(payload));
     const onRemoveChannel = (payload) => {
       const removedId = String(payload.id);
+
       dispatch(removeChannel(removedId));
       dispatch(removeMessagesByChannel(removedId));
 
@@ -134,7 +141,7 @@ export default function HomePage() {
       socket.off('renameChannel', onRenameChannel);
       socket.disconnect();
     };
-  }, [socket, dispatch, currentChannelId, auth.isAuthenticated]);
+  }, [auth.token, socket, dispatch, currentChannelId]);
 
   const openAdd = () => {
     setModalError(null);
@@ -157,18 +164,19 @@ export default function HomePage() {
   const closeModal = () => setModal({ type: null, channel: null });
 
   const submitAdd = async (name) => {
-    setModalError(null);
     setModalSubmitting(true);
+    setModalError(null);
 
     try {
-      const res = await api.post('/channels', { name });
-      const created = res.data;
-      dispatch(setCurrentChannelId(created.id));
+      const safeName = clean(name);
+      const res = await api.post('/channels', { name: safeName });
+
+      dispatch(setCurrentChannelId(res.data.id));
       toast.success(t('toasts.channelCreated'));
       closeModal();
     } catch (e) {
       setModalError(t('modals.createFailed'));
-      toast.error(isNetworkError(e) ? t('toasts.networkError') : t('modals.createFailed'));
+      toast.error(t('modals.createFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -178,16 +186,18 @@ export default function HomePage() {
     const ch = modal.channel;
     if (!ch) return;
 
-    setModalError(null);
     setModalSubmitting(true);
+    setModalError(null);
 
     try {
-      await api.patch(`/channels/${ch.id}`, { name });
+      const safeName = clean(name);
+      await api.patch(`/channels/${ch.id}`, { name: safeName });
+
       toast.success(t('toasts.channelRenamed'));
       closeModal();
     } catch (e) {
       setModalError(t('modals.renameFailed'));
-      toast.error(isNetworkError(e) ? t('toasts.networkError') : t('modals.renameFailed'));
+      toast.error(t('modals.renameFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -197,16 +207,17 @@ export default function HomePage() {
     const ch = modal.channel;
     if (!ch) return;
 
-    setModalError(null);
     setModalSubmitting(true);
+    setModalError(null);
 
     try {
       await api.delete(`/channels/${ch.id}`);
+
       toast.success(t('toasts.channelRemoved'));
       closeModal();
     } catch (e) {
       setModalError(t('modals.removeFailed'));
-      toast.error(isNetworkError(e) ? t('toasts.networkError') : t('modals.removeFailed'));
+      toast.error(t('modals.removeFailed'));
     } finally {
       setModalSubmitting(false);
     }
@@ -214,8 +225,10 @@ export default function HomePage() {
 
   const onSubmitMessage = async (e) => {
     e.preventDefault();
-    const body = text.trim();
-    if (!body || !currentChannelId) return;
+    const raw = text.trim();
+    if (!raw || !currentChannelId) return;
+
+    const body = clean(raw);
 
     setSendError(null);
     setSending(true);
@@ -227,8 +240,7 @@ export default function HomePage() {
         username,
       });
       setText('');
-      // сообщение придёт через socket
-    } catch (err) {
+    } catch (e) {
       setSendError(t('chat.sendFailed'));
       toast.error(t('toasts.networkError'));
     } finally {
@@ -241,6 +253,7 @@ export default function HomePage() {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
+      {/* LEFT: channels */}
       <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
           <b>{t('chat.channels')}</b>
@@ -302,11 +315,10 @@ export default function HomePage() {
         </div>
       </aside>
 
+      {/* RIGHT: chat */}
       <main style={{ flex: 1, padding: 12, display: 'flex', flexDirection: 'column' }}>
         <div style={{ borderBottom: '1px solid #ddd', paddingBottom: 8, marginBottom: 8 }}>
-          <b>
-            {currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}
-          </b>
+          <b>{currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}</b>
           <div style={{ fontSize: 12, opacity: 0.7 }}>
             {t('chat.messagesCount', { count: visibleMessages.length })}
           </div>
