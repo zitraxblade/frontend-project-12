@@ -5,8 +5,6 @@ const initialState = {
   currentChannelId: null,
 };
 
-const toStr = (v) => (v == null ? null : String(v));
-
 const channelsSlice = createSlice({
   name: 'channels',
   initialState,
@@ -14,23 +12,24 @@ const channelsSlice = createSlice({
     setChannels(state, action) {
       const { channels, currentChannelId } = action.payload;
       state.items = channels;
-      state.currentChannelId = toStr(currentChannelId);
+      state.currentChannelId = currentChannelId;
     },
     setCurrentChannelId(state, action) {
-      state.currentChannelId = toStr(action.payload);
+      state.currentChannelId = action.payload;
     },
     addChannel(state, action) {
-      state.items.push(action.payload);
+      const ch = action.payload;
+      const exists = state.items.some((c) => String(c.id) === String(ch.id));
+      if (!exists) state.items.push(ch);
     },
     removeChannel(state, action) {
-      const id = toStr(action.payload);
-      state.items = state.items.filter((c) => toStr(c.id) !== id);
+      const id = String(action.payload);
+      state.items = state.items.filter((c) => String(c.id) !== id);
     },
     renameChannel(state, action) {
       const { id, name } = action.payload;
-      const strId = toStr(id);
-      const channel = state.items.find((c) => toStr(c.id) === strId);
-      if (channel) channel.name = name;
+      const ch = state.items.find((c) => String(c.id) === String(id));
+      if (ch) ch.name = name;
     },
   },
 });

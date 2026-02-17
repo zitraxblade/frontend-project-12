@@ -35,11 +35,12 @@ export default function HomePage() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
-  // ✅ сокет живёт стабильно
+  // ✅ сокет стабилен
   const socketRef = useRef(null);
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
 
+  // ✅ ХУКИ ВСЕГДА ВЫЗЫВАЮТСЯ (без ранних return!)
   const channels = useSelector((s) => s.channels.items);
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
@@ -72,14 +73,12 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // ✅ редирект только если реально не авторизован
-  if (!auth.isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // ✅ INIT: грузим данные, но currentChannelId ставим только если он ещё не выбран
+  // ✅ INIT: грузим только когда есть токен
   useEffect(() => {
-    if (!auth.token) return;
+    if (!auth.token) {
+      setLoading(false);
+      return;
+    }
 
     const load = async () => {
       setLoadError(null);
@@ -94,11 +93,9 @@ export default function HomePage() {
         const ch = channelsRes.data;
         const msgs = messagesRes.data;
 
-        dispatch(setChannels({
-          channels: ch,
-          currentChannelId: currentChannelId ?? (ch.length > 0 ? String(ch[0].id) : DEFAULT_CHANNEL_ID),
-        }));
+        const curId = ch.length > 0 ? String(ch[0].id) : DEFAULT_CHANNEL_ID;
 
+        dispatch(setChannels({ channels: ch, currentChannelId: curId }));
         dispatch(setMessages(msgs));
       } catch (e) {
         setLoadError(t('chat.loadFailed'));
@@ -109,21 +106,17 @@ export default function HomePage() {
     };
 
     load();
-    // ВАЖНО: currentChannelId в deps, чтобы не перетирать его, когда он уже есть
-  }, [auth.token, dispatch, t, currentChannelId]);
+  }, [auth.token, dispatch, t]);
 
-  // ✅ SOCKET: самый важный фикс — всегда disconnect -> auth -> connect
+  // ✅ SOCKET: перед connect кладём актуальный token
   useEffect(() => {
     if (!auth.token) return;
 
-    // гарантируем чистое подключение с актуальным токеном
-    socket.disconnect();
     socket.auth = { token: auth.token };
     socket.connect();
 
     const onNewMessage = (payload) => dispatch(addMessage(payload));
     const onNewChannel = (payload) => dispatch(addChannel(payload));
-
     const onRemoveChannel = (payload) => {
       const removedId = String(payload.id);
 
@@ -134,7 +127,6 @@ export default function HomePage() {
         dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID));
       }
     };
-
     const onRenameChannel = (payload) => dispatch(renameChannel(payload));
 
     socket.on('newMessage', onNewMessage);
@@ -171,7 +163,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
-  // CREATE CHANNEL (фильтр)
+  // CREATE CHANNEL (с фильтром + toast + мгновенный redux)
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -180,6 +172,7 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
+      dispatch(addChannel(res.data)); // ✅ сразу
       dispatch(setCurrentChannelId(res.data.id));
       toast.success(t('toasts.channelCreated'));
       closeModal();
@@ -191,7 +184,7 @@ export default function HomePage() {
     }
   };
 
-  // RENAME CHANNEL (фильтр)
+  // RENAME CHANNEL (с фильтром + toast)
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -213,7 +206,7 @@ export default function HomePage() {
     }
   };
 
-  // REMOVE CHANNEL
+  // REMOVE CHANNEL (toast)
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -234,7 +227,7 @@ export default function HomePage() {
     }
   };
 
-  // SEND MESSAGE (фильтр)
+  // SEND MESSAGE (с фильтром + toast + мгновенный redux)
   const onSubmitMessage = async (e) => {
     e.preventDefault();
     const raw = text.trim();
@@ -246,13 +239,17 @@ export default function HomePage() {
     setSending(true);
 
     try {
-      await api.post('/messages', {
+      const res = await api.post('/messages', {
         body,
         channelId: String(currentChannelId),
         username,
       });
+
+      // ✅ сразу добавляем — тесты не ждут socket
+      if (res?.data?.id != null) dispatch(addMessage(res.data));
+
       setText('');
-    } catch (e2) {
+    } catch (e) {
       setSendError(t('chat.sendFailed'));
       toast.error(t('toasts.networkError'));
     } finally {
@@ -260,12 +257,16 @@ export default function HomePage() {
     }
   };
 
+  // ✅ теперь можно делать ранний return ПОСЛЕ хуков
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
   if (loadError) return <div style={{ padding: 24 }}>{loadError}</div>;
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      {/* LEFT */}
       <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
           <b>{t('chat.channels')}</b>
@@ -284,12 +285,7 @@ export default function HomePage() {
                   key={c.id}
                   variant={isActive ? 'primary' : 'light'}
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{
-                    textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
+                  style={{ textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   # {c.name}
                 </Button>
@@ -301,12 +297,7 @@ export default function HomePage() {
                 <Button
                   variant={isActive ? 'primary' : 'light'}
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{
-                    textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
+                  style={{ textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   # {c.name}
                 </Button>
@@ -327,7 +318,6 @@ export default function HomePage() {
         </div>
       </aside>
 
-      {/* RIGHT */}
       <main style={{ flex: 1, padding: 12, display: 'flex', flexDirection: 'column' }}>
         <div style={{ borderBottom: '1px solid #ddd', paddingBottom: 8, marginBottom: 8 }}>
           <b>{currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}</b>
