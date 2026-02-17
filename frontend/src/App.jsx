@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+
 import Header from './components/Header.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -19,7 +20,13 @@ export default function App() {
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
 
-      <ToastContainer position="top-right" autoClose={2000} newestOnTop closeOnClick pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+      />
     </>
   );
 }
