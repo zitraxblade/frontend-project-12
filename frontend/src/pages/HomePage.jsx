@@ -172,8 +172,8 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      // ✅ мгновенно добавим в UI (не ждём сокет)
-      dispatch(addChannel(res.data));
+      // ✅ мгновенно добавим в UI (и имя берем safeName, чтобы было ровно *****)
+      dispatch(addChannel({ ...res.data, name: safeName }));
       dispatch(setCurrentChannelId(res.data.id));
 
       toast.success(t('toasts.channelCreated'));
@@ -295,7 +295,9 @@ export default function HomePage() {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  # {c.name}
+                  {/* ✅ # не участвует в accessible name -> тесты ищут по имени канала */}
+                  <span aria-hidden="true"># </span>
+                  {c.name}
                 </Button>
               );
             }
@@ -312,7 +314,9 @@ export default function HomePage() {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  # {c.name}
+                  {/* ✅ # не участвует в accessible name */}
+                  <span aria-hidden="true"># </span>
+                  {c.name}
                 </Button>
 
                 <Dropdown.Toggle
