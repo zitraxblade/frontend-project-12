@@ -17,7 +17,7 @@ export default function RenameChannelModal({
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (show) setTimeout(() => inputRef.current?.select(), 0);
+    if (show) setTimeout(() => inputRef.current?.focus(), 0);
   }, [show]);
 
   const schema = yup.object({
@@ -29,7 +29,8 @@ export default function RenameChannelModal({
       .required(t('validation.required'))
       .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = (value ?? '').trim().toLowerCase();
-        if (v === initialName.trim().toLowerCase()) return true;
+        const init = (initialName ?? '').trim().toLowerCase();
+        if (v === init) return true;
         return !existingNames.includes(v);
       }),
   });
@@ -46,13 +47,11 @@ export default function RenameChannelModal({
         validationSchema={schema}
         onSubmit={(values) => onSubmit(values.name.trim())}
       >
-        {({
-          handleSubmit, handleChange, values, errors, touched,
-        }) => (
+        {({ handleSubmit, handleChange, values, errors, touched }) => (
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
-              <Form.Group>
-                <Form.Label className="visually-hidden">{t('auth.username')}</Form.Label>
+              <Form.Group controlId="renameChannelName">
+                <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
                 <Form.Control
                   ref={inputRef}
                   name="name"
@@ -74,7 +73,7 @@ export default function RenameChannelModal({
                 {t('common.cancel')}
               </Button>
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? t('common.saving') : t('common.save')}
+                {t('common.send')}
               </Button>
             </Modal.Footer>
           </Form>

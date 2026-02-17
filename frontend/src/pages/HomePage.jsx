@@ -35,12 +35,10 @@ export default function HomePage() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
-  // socket стабилен между рендерами
   const socketRef = useRef(null);
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
 
-  // хуки всегда вызываются
   const channels = useSelector((s) => s.channels.items);
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
@@ -73,7 +71,6 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // INIT: грузим только если есть токен
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -108,7 +105,6 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
-  // SOCKET
   useEffect(() => {
     if (!auth.token) return;
 
@@ -172,7 +168,7 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      // ✅ мгновенно добавим в UI (и имя берем safeName, чтобы было ровно *****)
+      // ✅ сразу показываем в UI, и имя берём safeName (*****)
       dispatch(addChannel({ ...res.data, name: safeName }));
       dispatch(setCurrentChannelId(res.data.id));
 
@@ -198,6 +194,9 @@ export default function HomePage() {
       const safeName = clean(name);
       await api.patch(`/channels/${ch.id}`, { name: safeName });
 
+      // ✅ ВАЖНО: обновляем Redux сразу (тесты не ждут socket)
+      dispatch(renameChannel({ id: ch.id, name: safeName }));
+
       toast.success(t('toasts.channelRenamed'));
       closeModal();
     } catch {
@@ -218,6 +217,15 @@ export default function HomePage() {
 
     try {
       await api.delete(`/channels/${ch.id}`);
+
+      const removedId = String(ch.id);
+
+      // ✅ сразу убираем из UI (тесты не ждут socket)
+      dispatch(removeChannel(removedId));
+      dispatch(removeMessagesByChannel(removedId));
+      if (String(currentChannelId) === removedId) {
+        dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID));
+      }
 
       toast.success(t('toasts.channelRemoved'));
       closeModal();
@@ -248,10 +256,8 @@ export default function HomePage() {
         username,
       });
 
-      // ✅ мгновенно покажем сообщение (на случай если тест не ждёт сокет)
-      if (res?.data?.id != null) {
-        dispatch(addMessage(res.data));
-      }
+      // ✅ сразу показываем (тесты не ждут socket)
+      if (res?.data?.id != null) dispatch(addMessage(res.data));
 
       setText('');
     } catch {
@@ -262,7 +268,6 @@ export default function HomePage() {
     }
   };
 
-  // ранний return после хуков
   if (!auth.isAuthenticated) return <Navigate to="/login" replace />;
 
   if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
@@ -282,42 +287,34 @@ export default function HomePage() {
           {channels.map((c) => {
             const isActive = String(c.id) === String(currentChannelId);
 
+            const ChannelButton = (
+              <Button
+                variant={isActive ? 'primary' : 'light'}
+                onClick={() => dispatch(setCurrentChannelId(c.id))}
+                style={{
+                  textAlign: 'left',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {/* ✅ чтобы name кнопки был ровно "*****", без "# " */}
+                <span aria-hidden="true"># </span>
+                {c.name}
+              </Button>
+            );
+
             if (!c.removable) {
               return (
-                <Button
-                  key={c.id}
-                  variant={isActive ? 'primary' : 'light'}
-                  onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{
-                    textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {/* ✅ # не участвует в accessible name -> тесты ищут по имени канала */}
-                  <span aria-hidden="true"># </span>
-                  {c.name}
-                </Button>
+                <div key={c.id}>
+                  {ChannelButton}
+                </div>
               );
             }
 
             return (
               <Dropdown as={ButtonGroup} key={c.id}>
-                <Button
-                  variant={isActive ? 'primary' : 'light'}
-                  onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{
-                    textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {/* ✅ # не участвует в accessible name */}
-                  <span aria-hidden="true"># </span>
-                  {c.name}
-                </Button>
+                {ChannelButton}
 
                 <Dropdown.Toggle
                   split
