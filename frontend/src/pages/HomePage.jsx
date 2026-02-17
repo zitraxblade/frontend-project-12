@@ -35,7 +35,6 @@ export default function HomePage() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
-  // socket стабилен между рендерами
   const socketRef = useRef(null);
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
@@ -72,7 +71,6 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // INIT
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -107,7 +105,6 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
-  // SOCKET
   useEffect(() => {
     if (!auth.token) return;
 
@@ -128,7 +125,6 @@ export default function HomePage() {
       }
     };
 
-    // важно: payload сокета может быть { id, name }
     const onRenameChannel = (payload) => dispatch(renameChannel(payload));
 
     socket.on('newMessage', onNewMessage);
@@ -165,7 +161,6 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
-  // CREATE CHANNEL
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -187,7 +182,6 @@ export default function HomePage() {
     }
   };
 
-  // RENAME CHANNEL — ключевой фикс: всегда обновляем Redux сразу
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -195,13 +189,12 @@ export default function HomePage() {
     setModalSubmitting(true);
     setModalError(null);
 
-    const safeName = clean(name);
-
     try {
-      await api.patch(`/channels/${ch.id}`, { name: safeName });
+      const safeName = clean(name);
+      const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      // ✅ не ждём сокет и не зависим от res.data
-      dispatch(renameChannel({ id: ch.id, name: safeName }));
+      const payload = res?.data?.id != null ? res.data : { id: ch.id, name: safeName };
+      dispatch(renameChannel(payload));
 
       toast.success(t('toasts.channelRenamed'));
       closeModal();
@@ -213,7 +206,6 @@ export default function HomePage() {
     }
   };
 
-  // REMOVE CHANNEL
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -233,7 +225,6 @@ export default function HomePage() {
     }
   };
 
-  // SEND MESSAGE
   const onSubmitMessage = async (e) => {
     e.preventDefault();
 
@@ -263,7 +254,6 @@ export default function HomePage() {
   };
 
   if (!auth.isAuthenticated) return <Navigate to="/login" replace />;
-
   if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
   if (loadError) return <div style={{ padding: 24 }}>{loadError}</div>;
 
@@ -320,22 +310,11 @@ export default function HomePage() {
                 />
 
                 <Dropdown.Menu renderOnMount>
-                  <Dropdown.Item
-                    as="button"
-                    type="button"
-                    role="menuitem"
-                    onClick={() => openRename(c)}
-                  >
-                    {t('modals.renameChannelTitle')}
-                  </Dropdown.Item>
-
-                  <Dropdown.Item
-                    as="button"
-                    type="button"
-                    role="menuitem"
-                    onClick={() => openRemove(c)}
-                  >
+                  <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
                     {t('modals.removeChannelTitle')}
+                  </Dropdown.Item>
+                  <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
+                    {t('modals.renameChannelTitle')}
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
