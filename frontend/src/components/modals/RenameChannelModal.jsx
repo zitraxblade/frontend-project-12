@@ -16,7 +16,6 @@ export default function RenameChannelModal({
   const { t } = useTranslation();
   const inputRef = useRef(null);
 
-  // автофокус + выделить текст (тесты часто сразу печатают)
   useEffect(() => {
     if (!show) return;
     setTimeout(() => {
@@ -42,7 +41,7 @@ export default function RenameChannelModal({
       .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = String(value ?? '').trim().toLowerCase();
         const init = String(initialName ?? '').trim().toLowerCase();
-        if (v === init) return true; // если имя не изменили — ок
+        if (v === init) return true;
         return !normalizedExisting.includes(v);
       }),
   });
@@ -50,8 +49,8 @@ export default function RenameChannelModal({
   return (
     <Modal show={show} onHide={() => !submitting && onHide()} centered>
       <Modal.Header closeButton={!submitting}>
-        {/* ВАЖНО: тесты чаще ждут "Переименовать канал" */}
-        <Modal.Title>{t('modals.renameChannelModalTitle')}</Modal.Title>
+        {/* ✅ Заголовок = "Переименовать" */}
+        <Modal.Title>{t('modals.renameChannelTitle')}</Modal.Title>
       </Modal.Header>
 
       <Formik
@@ -95,7 +94,6 @@ export default function RenameChannelModal({
                 {t('common.cancel')}
               </Button>
 
-              {/* ВАЖНО: в модалках тесты часто жмут "Отправить" */}
               <Button type="submit" variant="primary" disabled={submitting}>
                 {submitting ? t('common.sending') : t('common.send')}
               </Button>

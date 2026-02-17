@@ -107,7 +107,7 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
-  // SOCKET
+  // SOCKET (только слушаем события)
   useEffect(() => {
     if (!auth.token) return;
 
@@ -164,7 +164,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
-  // CREATE CHANNEL (REST ок)
+  // CREATE CHANNEL
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -186,7 +186,7 @@ export default function HomePage() {
     }
   };
 
-  // ✅ RENAME CHANNEL (socket + ack)
+  // RENAME CHANNEL (REST + мгновенный redux)
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -194,24 +194,13 @@ export default function HomePage() {
     setModalSubmitting(true);
     setModalError(null);
 
-    try {
-      const safeName = clean(name);
+    const safeName = clean(name);
 
-      await new Promise((resolve, reject) => {
-        socket.timeout(5000).emit(
-          'renameChannel',
-          { id: ch.id, name: safeName },
-          (err, response) => {
-            if (err) {
-              reject(err);
-              return;
-            }
-            const data = response?.data ?? response;
-            dispatch(renameChannel(data ?? { id: ch.id, name: safeName }));
-            resolve();
-          },
-        );
-      });
+    try {
+      await api.patch(`/channels/${ch.id}`, { name: safeName });
+
+      // важно: обновляем сразу, даже если сервер ничего не вернул
+      dispatch(renameChannel({ id: ch.id, name: safeName }));
 
       toast.success(t('toasts.channelRenamed'));
       closeModal();
@@ -223,7 +212,7 @@ export default function HomePage() {
     }
   };
 
-  // ✅ REMOVE CHANNEL (socket + ack)
+  // REMOVE CHANNEL (REST)
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -232,15 +221,14 @@ export default function HomePage() {
     setModalError(null);
 
     try {
-      await new Promise((resolve, reject) => {
-        socket.timeout(5000).emit('removeChannel', { id: ch.id }, (err) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve();
-        });
-      });
+      await api.delete(`/channels/${ch.id}`);
+
+      // мгновенно обновим, чтобы не ждать сокет
+      dispatch(removeChannel(String(ch.id)));
+      dispatch(removeMessagesByChannel(String(ch.id)));
+      if (String(currentChannelId) === String(ch.id)) {
+        dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID));
+      }
 
       toast.success(t('toasts.channelRemoved'));
       closeModal();
@@ -252,7 +240,7 @@ export default function HomePage() {
     }
   };
 
-  // SEND MESSAGE (REST)
+  // SEND MESSAGE
   const onSubmitMessage = async (e) => {
     e.preventDefault();
 
@@ -337,11 +325,12 @@ export default function HomePage() {
                   aria-label={t('chat.channelManagement')}
                 />
 
+                {/* ✅ ВАЖНО: Dropdown.Item без as="button" — тогда роль menuitem */}
                 <Dropdown.Menu renderOnMount>
-                  <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
+                  <Dropdown.Item onClick={() => openRemove(c)}>
                     {t('modals.removeChannelTitle')}
                   </Dropdown.Item>
-                  <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
+                  <Dropdown.Item onClick={() => openRename(c)}>
                     {t('modals.renameChannelTitle')}
                   </Dropdown.Item>
                 </Dropdown.Menu>

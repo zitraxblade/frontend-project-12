@@ -29,8 +29,6 @@ const resources = {
       auth: {
         loginTitle: 'Вход',
         signupTitle: 'Регистрация',
-
-        // ✅ тесты ждут текст "Ваш ник"
         yourNick: 'Ваш ник',
 
         username: 'Имя пользователя',
@@ -65,23 +63,14 @@ const resources = {
         loadFailed: 'Не удалось загрузить данные.',
         channelNotSelected: 'Канал не выбран',
 
-        // ✅ для тестов (лейбл инпута сообщения)
         newMessageLabel: 'Новое сообщение',
-
-        // ✅ для aria-label на кнопке меню канала
         channelManagement: 'Управление каналом',
       },
 
       modals: {
         addChannelTitle: 'Добавить канал',
-
-        // ✅ ВАЖНО: пункты меню короткие (как в большинстве тестов)
         renameChannelTitle: 'Переименовать',
         removeChannelTitle: 'Удалить',
-
-        // ✅ Заголовок модалки — полный
-        renameChannelModalTitle: 'Переименовать канал',
-
         channelNameLabel: 'Имя канала',
 
         removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
