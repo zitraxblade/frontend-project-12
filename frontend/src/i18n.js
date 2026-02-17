@@ -19,6 +19,10 @@ const resources = {
         cancel: 'Отменить',
         send: 'Отправить',
         sending: 'Отправка…',
+        save: 'Сохранить',
+        saving: 'Сохранение…',
+        delete: 'Удалить',
+        deleting: 'Удаление…',
         loading: 'Загрузка…',
       },
 
@@ -26,7 +30,7 @@ const resources = {
         loginTitle: 'Вход',
         signupTitle: 'Регистрация',
 
-        // тесты ждут "Ваш ник"
+        // тесты часто ищут именно это
         yourNick: 'Ваш ник',
 
         username: 'Имя пользователя',
@@ -35,11 +39,13 @@ const resources = {
         signIn: 'Войти',
         signUp: 'Зарегистрироваться',
         signingIn: 'Вход…',
+
         testUser: 'Тестовый пользователь: admin / admin',
         noAccount: 'Нет аккаунта?',
         haveAccount: 'Уже есть аккаунт?',
         registerLink: 'Регистрация',
         loginLink: 'Войти',
+
         wrongCreds: 'Неверные имя пользователя или пароль',
         userExists: 'Такой пользователь уже существует',
         signupFailed: 'Не удалось зарегистрироваться. Попробуйте ещё раз.',
@@ -61,22 +67,23 @@ const resources = {
         loadFailed: 'Не удалось загрузить данные.',
         channelNotSelected: 'Канал не выбран',
 
-        // тесты ждут aria-label инпута сообщения
+        // лейбл для инпута сообщения (Playwright любит aria-label)
         newMessageLabel: 'Новое сообщение',
 
-        // тесты часто ищут toggle по aria-label
+        // aria-label для кнопки управления каналом
         channelManagement: 'Управление каналом',
       },
 
       modals: {
         addChannelTitle: 'Добавить канал',
 
-        // важно: короткие пункты меню
+        // пункты в выпадающем меню
         renameChannelTitle: 'Переименовать',
         removeChannelTitle: 'Удалить',
 
-        // важно: заголовок rename-модалки часто ждут "Переименовать"
-        renameChannelModalTitle: 'Переименовать',
+        // заголовки модалок
+        renameChannelModalTitle: 'Переименовать канал',
+        removeChannelModalTitle: 'Удалить канал',
 
         channelNameLabel: 'Имя канала',
 

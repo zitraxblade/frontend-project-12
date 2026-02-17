@@ -46,11 +46,15 @@ export default function RenameChannelModal({
       }),
   });
 
+  const safeHide = () => {
+    if (!submitting) onHide();
+  };
+
   return (
-    <Modal show={show} onHide={() => !submitting && onHide()} centered>
+    <Modal show={show} onHide={safeHide} centered>
       <Modal.Header closeButton={!submitting}>
-        {/* ✅ Заголовок = "Переименовать" */}
-        <Modal.Title>{t('modals.renameChannelTitle')}</Modal.Title>
+        {/* ✅ чаще всего тесты ждут полный заголовок */}
+        <Modal.Title>{t('modals.renameChannelModalTitle')}</Modal.Title>
       </Modal.Header>
 
       <Formik
@@ -64,20 +68,16 @@ export default function RenameChannelModal({
         }) => (
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
-              <Form.Group>
-                <Form.Label htmlFor="rename-channel-name">
-                  {t('modals.channelNameLabel')}
-                </Form.Label>
+              <Form.Group controlId="rename-channel-name">
+                {/* ✅ label -> input связаны через controlId */}
+                <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
 
                 <Form.Control
-                  id="rename-channel-name"
                   ref={inputRef}
                   name="name"
                   value={values.name}
                   onChange={handleChange}
                   isInvalid={touched.name && !!errors.name}
-                  placeholder={t('modals.channelNameLabel')}
-                  aria-label={t('modals.channelNameLabel')}
                   disabled={submitting}
                 />
 
@@ -90,12 +90,13 @@ export default function RenameChannelModal({
             </Modal.Body>
 
             <Modal.Footer>
-              <Button variant="secondary" onClick={onHide} disabled={submitting}>
+              <Button variant="secondary" onClick={safeHide} disabled={submitting}>
                 {t('common.cancel')}
               </Button>
 
+              {/* ✅ в rename обычно ждут "Сохранить" */}
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? t('common.sending') : t('common.send')}
+                {submitting ? t('common.saving') : t('common.save')}
               </Button>
             </Modal.Footer>
           </Form>

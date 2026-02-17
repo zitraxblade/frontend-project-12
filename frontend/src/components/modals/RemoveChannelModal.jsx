@@ -16,9 +16,9 @@ export default function RemoveChannelModal({
   };
 
   return (
-    <Modal show={show} onHide={safeHide} centered aria-label={t('modals.removeChannelTitle')}>
+    <Modal show={show} onHide={safeHide} centered>
       <Modal.Header closeButton={!submitting}>
-        <Modal.Title>{t('modals.removeChannelTitle')}</Modal.Title>
+        <Modal.Title>{t('modals.removeChannelModalTitle')}</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
