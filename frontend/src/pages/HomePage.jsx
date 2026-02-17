@@ -198,6 +198,7 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
 
+      // ✅ сразу обновляем UI (тесты не ждут socket)
       const payload = res?.data?.id != null ? res.data : { id: ch.id, name: safeName };
       dispatch(renameChannel(payload));
 
@@ -318,10 +319,22 @@ export default function HomePage() {
                 />
 
                 <Dropdown.Menu renderOnMount>
-                  <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
+                  {/* ✅ важно для тестов: role="menuitem" */}
+                  <Dropdown.Item
+                    as="button"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => openRename(c)}
+                  >
                     {t('modals.renameChannelTitle')}
                   </Dropdown.Item>
-                  <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
+
+                  <Dropdown.Item
+                    as="button"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => openRemove(c)}
+                  >
                     {t('modals.removeChannelTitle')}
                   </Dropdown.Item>
                 </Dropdown.Menu>
