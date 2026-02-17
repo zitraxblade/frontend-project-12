@@ -40,7 +40,6 @@ export default function HomePage() {
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
 
-  // хуки всегда вызываются
   const channels = useSelector((s) => s.channels.items);
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
@@ -117,6 +116,7 @@ export default function HomePage() {
 
     const onNewMessage = (payload) => dispatch(addMessage(payload));
     const onNewChannel = (payload) => dispatch(addChannel(payload));
+
     const onRemoveChannel = (payload) => {
       const removedId = String(payload.id);
 
@@ -127,6 +127,7 @@ export default function HomePage() {
         dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID));
       }
     };
+
     const onRenameChannel = (payload) => dispatch(renameChannel(payload));
 
     socket.on('newMessage', onNewMessage);
@@ -186,7 +187,7 @@ export default function HomePage() {
     }
   };
 
-  // ✅ RENAME CHANNEL — КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
+  // RENAME CHANNEL
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -199,7 +200,7 @@ export default function HomePage() {
 
       const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      // ✅ мгновенно обновляем Redux (тесты не ждут socket)
+      // мгновенно обновляем Redux (тесты не ждут socket)
       const payload = res?.data?.id != null
         ? res.data
         : { id: ch.id, name: safeName };
@@ -225,8 +226,6 @@ export default function HomePage() {
 
     try {
       await api.delete(`/channels/${ch.id}`);
-
-      // можно и тут мгновенно обновлять, но обычно сокет успевает
       toast.success(t('toasts.channelRemoved'));
       closeModal();
     } catch {
@@ -278,7 +277,12 @@ export default function HomePage() {
       <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
           <b>{t('chat.channels')}</b>
-          <Button size="sm" variant="outline-primary" onClick={openAdd}>
+          <Button
+            size="sm"
+            variant="outline-primary"
+            onClick={openAdd}
+            aria-label={t('modals.addChannelTitle')}
+          >
             +
           </Button>
         </div>

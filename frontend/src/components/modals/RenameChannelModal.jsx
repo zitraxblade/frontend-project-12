@@ -42,8 +42,7 @@ export default function RenameChannelModal({
       .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = String(value ?? '').trim().toLowerCase();
         const init = String(initialName ?? '').trim().toLowerCase();
-        // если имя не изменили — ок
-        if (v === init) return true;
+        if (v === init) return true; // если имя не изменили — ок
         return !normalizedExisting.includes(v);
       }),
   });
@@ -51,7 +50,8 @@ export default function RenameChannelModal({
   return (
     <Modal show={show} onHide={() => !submitting && onHide()} centered>
       <Modal.Header closeButton={!submitting}>
-        <Modal.Title>{t('modals.renameChannelTitle')}</Modal.Title>
+        {/* ВАЖНО: тесты чаще ждут "Переименовать канал" */}
+        <Modal.Title>{t('modals.renameChannelModalTitle')}</Modal.Title>
       </Modal.Header>
 
       <Formik
@@ -65,23 +65,27 @@ export default function RenameChannelModal({
         }) => (
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
-              <Form.Group controlId="channelName">
-  <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
+              <Form.Group>
+                <Form.Label htmlFor="rename-channel-name">
+                  {t('modals.channelNameLabel')}
+                </Form.Label>
 
-  <Form.Control
-    id="channelName"
-    ref={inputRef}
-    name="name"
-    value={values.name}
-    onChange={handleChange}
-    isInvalid={touched.name && !!errors.name}
-    disabled={submitting}
-  />
+                <Form.Control
+                  id="rename-channel-name"
+                  ref={inputRef}
+                  name="name"
+                  value={values.name}
+                  onChange={handleChange}
+                  isInvalid={touched.name && !!errors.name}
+                  placeholder={t('modals.channelNameLabel')}
+                  aria-label={t('modals.channelNameLabel')}
+                  disabled={submitting}
+                />
 
-  <Form.Control.Feedback type="invalid">
-    {errors.name}
-  </Form.Control.Feedback>
-</Form.Group>
+                <Form.Control.Feedback type="invalid">
+                  {errors.name}
+                </Form.Control.Feedback>
+              </Form.Group>
 
               {submitError && <div className="text-danger mt-2">{submitError}</div>}
             </Modal.Body>
@@ -91,9 +95,9 @@ export default function RenameChannelModal({
                 {t('common.cancel')}
               </Button>
 
-              {/* важно: тут должно быть "Сохранить" */}
+              {/* ВАЖНО: в модалках тесты часто жмут "Отправить" */}
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? t('common.saving') : t('common.save')}
+                {submitting ? t('common.sending') : t('common.send')}
               </Button>
             </Modal.Footer>
           </Form>

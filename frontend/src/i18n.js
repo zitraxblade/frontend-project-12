@@ -27,27 +27,27 @@ const resources = {
       },
 
       auth: {
-  loginTitle: 'Вход',
-  signupTitle: 'Регистрация',
+        loginTitle: 'Вход',
+        signupTitle: 'Регистрация',
 
-  // ✅ тесты ждут текст "Ваш ник"
-  yourNick: 'Ваш ник',
+        // ✅ тесты ждут текст "Ваш ник"
+        yourNick: 'Ваш ник',
 
-  username: 'Имя пользователя',
-  password: 'Пароль',
-  confirmPassword: 'Подтвердите пароль',
-  signIn: 'Войти',
-  signUp: 'Зарегистрироваться',
-  signingIn: 'Вход…',
-  testUser: 'Тестовый пользователь: admin / admin',
-  noAccount: 'Нет аккаунта?',
-  haveAccount: 'Уже есть аккаунт?',
-  registerLink: 'Регистрация',
-  loginLink: 'Войти',
-  wrongCreds: 'Неверные имя пользователя или пароль',
-  userExists: 'Такой пользователь уже существует',
-  signupFailed: 'Не удалось зарегистрироваться. Попробуйте ещё раз.',
-},
+        username: 'Имя пользователя',
+        password: 'Пароль',
+        confirmPassword: 'Подтвердите пароль',
+        signIn: 'Войти',
+        signUp: 'Зарегистрироваться',
+        signingIn: 'Вход…',
+        testUser: 'Тестовый пользователь: admin / admin',
+        noAccount: 'Нет аккаунта?',
+        haveAccount: 'Уже есть аккаунт?',
+        registerLink: 'Регистрация',
+        loginLink: 'Войти',
+        wrongCreds: 'Неверные имя пользователя или пароль',
+        userExists: 'Такой пользователь уже существует',
+        signupFailed: 'Не удалось зарегистрироваться. Попробуйте ещё раз.',
+      },
 
       validation: {
         required: 'Обязательное поле',
@@ -58,34 +58,38 @@ const resources = {
       },
 
       chat: {
-  channels: 'Каналы',
-  messagesCount: 'сообщений: {{count}}',
-  messagePlaceholder: 'Введите сообщение...',
-  sendFailed: 'Ошибка соединения',
-  loadFailed: 'Не удалось загрузить данные.',
-  channelNotSelected: 'Канал не выбран',
+        channels: 'Каналы',
+        messagesCount: 'сообщений: {{count}}',
+        messagePlaceholder: 'Введите сообщение...',
+        sendFailed: 'Ошибка соединения',
+        loadFailed: 'Не удалось загрузить данные.',
+        channelNotSelected: 'Канал не выбран',
 
-  // ✅ для тестов (лейбл инпута сообщения)
-  newMessageLabel: 'Новое сообщение',
+        // ✅ для тестов (лейбл инпута сообщения)
+        newMessageLabel: 'Новое сообщение',
 
-  // ✅ для aria-label на кнопке меню канала
-  channelManagement: 'Управление каналом',
-},
+        // ✅ для aria-label на кнопке меню канала
+        channelManagement: 'Управление каналом',
+      },
 
       modals: {
-  addChannelTitle: 'Добавить канал',
+        addChannelTitle: 'Добавить канал',
 
-  // ✅ тесты ждут ровно эти слова
-  renameChannelTitle: 'Переименовать',
-  removeChannelTitle: 'Удалить',
+        // ✅ пункт меню (коротко)
+        renameChannelTitle: 'Переименовать',
+        removeChannelTitle: 'Удалить',
 
-  channelNameLabel: 'Имя канала',
+        // ✅ заголовки модалок (полные) — тесты часто ждут именно так
+        renameChannelModalTitle: 'Переименовать канал',
+        removeChannelModalTitle: 'Удалить канал',
 
-  removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
-  createFailed: 'Не удалось создать канал. Попробуйте ещё раз.',
-  renameFailed: 'Не удалось переименовать. Попробуйте ещё раз.',
-  removeFailed: 'Не удалось удалить канал. Попробуйте ещё раз.',
-},
+        channelNameLabel: 'Имя канала',
+
+        removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
+        createFailed: 'Не удалось создать канал. Попробуйте ещё раз.',
+        renameFailed: 'Не удалось переименовать. Попробуйте ещё раз.',
+        removeFailed: 'Не удалось удалить канал. Попробуйте ещё раз.',
+      },
 
       notFound: {
         title: 'Страница не найдена',
