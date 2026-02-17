@@ -49,16 +49,22 @@ export default function AddChannelModal({
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
               <Form.Group>
-                <Form.Label className="visually-hidden">{t('auth.username')}</Form.Label>
+                <Form.Label htmlFor="channel-name">
+                  {t('modals.channelNameLabel')}
+                </Form.Label>
+
                 <Form.Control
+                  id="channel-name"
                   ref={inputRef}
                   name="name"
                   value={values.name}
                   onChange={handleChange}
                   isInvalid={touched.name && !!errors.name}
-                  placeholder={t('modals.addChannelTitle')}
+                  placeholder={t('modals.channelNameLabel')}
+                  aria-label={t('modals.channelNameLabel')}
                   disabled={submitting}
                 />
+
                 <Form.Control.Feedback type="invalid">
                   {errors.name}
                 </Form.Control.Feedback>

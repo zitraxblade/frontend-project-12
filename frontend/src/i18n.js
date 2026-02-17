@@ -29,18 +29,12 @@ const resources = {
       auth: {
         loginTitle: 'Вход',
         signupTitle: 'Регистрация',
-
-        // важно для тестов:
-        yourNick: 'Ваш ник',
         username: 'Имя пользователя',
-
         password: 'Пароль',
         confirmPassword: 'Подтвердите пароль',
-
         signIn: 'Войти',
         signUp: 'Зарегистрироваться',
         signingIn: 'Вход…',
-
         testUser: 'Тестовый пользователь: admin / admin',
         noAccount: 'Нет аккаунта?',
         haveAccount: 'Уже есть аккаунт?',
@@ -63,17 +57,20 @@ const resources = {
         channels: 'Каналы',
         messagesCount: 'сообщений: {{count}}',
         messagePlaceholder: 'Введите сообщение...',
-        sendFailed: 'Ошибка соединения',
+        sendFailed: 'Ошибка соединения', // ✅ тесты ждут именно это
         loadFailed: 'Не удалось загрузить данные.',
         channelNotSelected: 'Канал не выбран',
+
+        newMessageLabel: 'Новое сообщение', // ✅ label/aria для инпута
+        channelManagement: 'Управление каналом', // ✅ aria-label для dropdown
       },
 
       modals: {
         addChannelTitle: 'Добавить канал',
         renameChannelTitle: 'Переименовать',
         removeChannelTitle: 'Удалить',
-        channelNameLabel: 'Имя канала',
-        channelManagement: 'Управление каналом',
+
+        channelNameLabel: 'Имя канала', // ✅ тесты ищут по label
 
         removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
         createFailed: 'Не удалось создать канал. Попробуйте ещё раз.',

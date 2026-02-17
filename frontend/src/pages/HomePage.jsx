@@ -35,12 +35,12 @@ export default function HomePage() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
-  // ✅ сокет стабилен
+  // socket стабилен между рендерами
   const socketRef = useRef(null);
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
 
-  // ✅ ХУКИ ВСЕГДА ВЫЗЫВАЮТСЯ (без ранних return!)
+  // хуки всегда вызываются
   const channels = useSelector((s) => s.channels.items);
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
@@ -73,7 +73,7 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // ✅ INIT: грузим только когда есть токен
+  // INIT: грузим только если есть токен
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -97,7 +97,7 @@ export default function HomePage() {
 
         dispatch(setChannels({ channels: ch, currentChannelId: curId }));
         dispatch(setMessages(msgs));
-      } catch (e) {
+      } catch {
         setLoadError(t('chat.loadFailed'));
         toast.error(t('toasts.loadFailed'));
       } finally {
@@ -108,7 +108,7 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
-  // ✅ SOCKET: перед connect кладём актуальный token
+  // SOCKET: connect только когда есть токен, и обязательно кладём актуальный токен
   useEffect(() => {
     if (!auth.token) return;
 
@@ -163,7 +163,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
-  // CREATE CHANNEL (с фильтром + toast + мгновенный redux)
+  // CREATE CHANNEL: фильтр + toast + мгновенный redux (чтоб тест не ждал socket)
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -172,11 +172,11 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      dispatch(addChannel(res.data)); // ✅ сразу
+      dispatch(addChannel(res.data)); // ✅ сразу показываем
       dispatch(setCurrentChannelId(res.data.id));
       toast.success(t('toasts.channelCreated'));
       closeModal();
-    } catch (e) {
+    } catch {
       setModalError(t('modals.createFailed'));
       toast.error(t('modals.createFailed'));
     } finally {
@@ -184,7 +184,7 @@ export default function HomePage() {
     }
   };
 
-  // RENAME CHANNEL (с фильтром + toast)
+  // RENAME CHANNEL
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -198,7 +198,7 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelRenamed'));
       closeModal();
-    } catch (e) {
+    } catch {
       setModalError(t('modals.renameFailed'));
       toast.error(t('modals.renameFailed'));
     } finally {
@@ -206,7 +206,7 @@ export default function HomePage() {
     }
   };
 
-  // REMOVE CHANNEL (toast)
+  // REMOVE CHANNEL
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -219,7 +219,7 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelRemoved'));
       closeModal();
-    } catch (e) {
+    } catch {
       setModalError(t('modals.removeFailed'));
       toast.error(t('modals.removeFailed'));
     } finally {
@@ -227,7 +227,7 @@ export default function HomePage() {
     }
   };
 
-  // SEND MESSAGE (с фильтром + toast + мгновенный redux)
+  // SEND MESSAGE: фильтр + toast + мгновенный redux (чтоб тест не ждал socket)
   const onSubmitMessage = async (e) => {
     e.preventDefault();
     const raw = text.trim();
@@ -245,11 +245,11 @@ export default function HomePage() {
         username,
       });
 
-      // ✅ сразу добавляем — тесты не ждут socket
+      // если backend возвращает сообщение — добавим сразу
       if (res?.data?.id != null) dispatch(addMessage(res.data));
 
       setText('');
-    } catch (e) {
+    } catch {
       setSendError(t('chat.sendFailed'));
       toast.error(t('toasts.networkError'));
     } finally {
@@ -257,7 +257,7 @@ export default function HomePage() {
     }
   };
 
-  // ✅ теперь можно делать ранний return ПОСЛЕ хуков
+  // ранний return после хуков — безопасно
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -285,7 +285,12 @@ export default function HomePage() {
                   key={c.id}
                   variant={isActive ? 'primary' : 'light'}
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{ textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  style={{
+                    textAlign: 'left',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
                 >
                   # {c.name}
                 </Button>
@@ -297,19 +302,29 @@ export default function HomePage() {
                 <Button
                   variant={isActive ? 'primary' : 'light'}
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{ textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  style={{
+                    textAlign: 'left',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
                 >
                   # {c.name}
                 </Button>
 
-                <Dropdown.Toggle split variant={isActive ? 'primary' : 'light'} id={`ch-${c.id}`} />
+                <Dropdown.Toggle
+                  split
+                  variant={isActive ? 'primary' : 'light'}
+                  id={`ch-${c.id}`}
+                  aria-label={t('chat.channelManagement')} // ✅ важно для тестов
+                />
 
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => openRename(c)}>
                     {t('modals.renameChannelTitle')}
                   </Dropdown.Item>
                   <Dropdown.Item onClick={() => openRemove(c)}>
-                    {t('common.delete')}
+                    {t('modals.removeChannelTitle')}
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
@@ -337,6 +352,7 @@ export default function HomePage() {
         <form onSubmit={onSubmitMessage} style={{ display: 'flex', gap: 8 }}>
           <input
             type="text"
+            aria-label={t('chat.newMessageLabel')} // ✅ важно для тестов
             placeholder={t('chat.messagePlaceholder')}
             style={{ flex: 1 }}
             value={text}
