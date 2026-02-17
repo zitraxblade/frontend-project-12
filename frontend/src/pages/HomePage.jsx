@@ -35,10 +35,12 @@ export default function HomePage() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
+  // socket стабилен между рендерами
   const socketRef = useRef(null);
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
 
+  // хуки всегда вызываются
   const channels = useSelector((s) => s.channels.items);
   const currentChannelId = useSelector((s) => s.channels.currentChannelId);
   const messages = useSelector((s) => s.messages.items);
@@ -57,7 +59,7 @@ export default function HomePage() {
   const [modalError, setModalError] = useState(null);
 
   const existingChannelNames = useMemo(
-    () => channels.map((c) => c.name.trim().toLowerCase()),
+    () => channels.map((c) => String(c.name ?? '').trim().toLowerCase()),
     [channels],
   );
 
@@ -71,6 +73,7 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
+  // INIT: грузим только если есть токен
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -105,6 +108,7 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
+  // SOCKET
   useEffect(() => {
     if (!auth.token) return;
 
@@ -159,6 +163,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
+  // CREATE CHANNEL
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -167,6 +172,7 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
+      // мгновенно в UI (не ждём сокет)
       dispatch(addChannel(res.data));
       dispatch(setCurrentChannelId(res.data.id));
 
@@ -180,7 +186,7 @@ export default function HomePage() {
     }
   };
 
-  // ✅ ВАЖНО: после PATCH обновляем Redux сразу
+  // ✅ RENAME CHANNEL — КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -190,9 +196,15 @@ export default function HomePage() {
 
     try {
       const safeName = clean(name);
-      await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      dispatch(renameChannel({ id: ch.id, name: safeName })); // ✅ вот это нужно тестам
+      const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
+
+      // ✅ мгновенно обновляем Redux (тесты не ждут socket)
+      const payload = res?.data?.id != null
+        ? res.data
+        : { id: ch.id, name: safeName };
+      dispatch(renameChannel(payload));
+
       toast.success(t('toasts.channelRenamed'));
       closeModal();
     } catch {
@@ -203,6 +215,7 @@ export default function HomePage() {
     }
   };
 
+  // REMOVE CHANNEL
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -212,6 +225,8 @@ export default function HomePage() {
 
     try {
       await api.delete(`/channels/${ch.id}`);
+
+      // можно и тут мгновенно обновлять, но обычно сокет успевает
       toast.success(t('toasts.channelRemoved'));
       closeModal();
     } catch {
@@ -222,6 +237,7 @@ export default function HomePage() {
     }
   };
 
+  // SEND MESSAGE
   const onSubmitMessage = async (e) => {
     e.preventDefault();
 
@@ -240,7 +256,9 @@ export default function HomePage() {
         username,
       });
 
+      // мгновенно покажем (если сервер возвращает сообщение)
       if (res?.data?.id != null) dispatch(addMessage(res.data));
+
       setText('');
     } catch {
       setSendError(t('chat.sendFailed'));
@@ -251,6 +269,7 @@ export default function HomePage() {
   };
 
   if (!auth.isAuthenticated) return <Navigate to="/login" replace />;
+
   if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
   if (loadError) return <div style={{ padding: 24 }}>{loadError}</div>;
 
@@ -259,7 +278,9 @@ export default function HomePage() {
       <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
           <b>{t('chat.channels')}</b>
-          <Button size="sm" variant="outline-primary" onClick={openAdd}>+</Button>
+          <Button size="sm" variant="outline-primary" onClick={openAdd}>
+            +
+          </Button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -272,7 +293,12 @@ export default function HomePage() {
                   key={c.id}
                   variant={isActive ? 'primary' : 'light'}
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{ textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  style={{
+                    textAlign: 'left',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
                 >
                   # {c.name}
                 </Button>
@@ -284,7 +310,12 @@ export default function HomePage() {
                 <Button
                   variant={isActive ? 'primary' : 'light'}
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{ textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  style={{
+                    textAlign: 'left',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
                 >
                   # {c.name}
                 </Button>
