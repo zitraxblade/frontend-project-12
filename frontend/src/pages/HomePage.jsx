@@ -72,7 +72,7 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // INIT: грузим только если есть токен
+  // INIT
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -173,7 +173,6 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      // мгновенно в UI (не ждём сокет)
       dispatch(addChannel(res.data));
       dispatch(setCurrentChannelId(res.data.id));
 
@@ -197,13 +196,9 @@ export default function HomePage() {
 
     try {
       const safeName = clean(name);
-
       const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      // мгновенно обновляем Redux (тесты не ждут socket)
-      const payload = res?.data?.id != null
-        ? res.data
-        : { id: ch.id, name: safeName };
+      const payload = res?.data?.id != null ? res.data : { id: ch.id, name: safeName };
       dispatch(renameChannel(payload));
 
       toast.success(t('toasts.channelRenamed'));
@@ -255,9 +250,7 @@ export default function HomePage() {
         username,
       });
 
-      // мгновенно покажем (если сервер возвращает сообщение)
       if (res?.data?.id != null) dispatch(addMessage(res.data));
-
       setText('');
     } catch {
       setSendError(t('chat.sendFailed'));
@@ -277,6 +270,7 @@ export default function HomePage() {
       <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
           <b>{t('chat.channels')}</b>
+
           <Button
             size="sm"
             variant="outline-primary"
@@ -331,7 +325,8 @@ export default function HomePage() {
                   aria-label={t('chat.channelManagement')}
                 />
 
-                <Dropdown.Menu>
+                {/* ✅ важно для Playwright: пункты меню всегда есть в DOM */}
+                <Dropdown.Menu renderOnMount>
                   <Dropdown.Item onClick={() => openRename(c)}>
                     {t('modals.renameChannelTitle')}
                   </Dropdown.Item>
