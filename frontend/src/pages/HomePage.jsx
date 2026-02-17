@@ -108,7 +108,7 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
-  // SOCKET: connect только когда есть токен, и обязательно кладём актуальный токен
+  // SOCKET
   useEffect(() => {
     if (!auth.token) return;
 
@@ -163,7 +163,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
-  // CREATE CHANNEL: фильтр + toast + мгновенный redux (чтоб тест не ждал socket)
+  // CREATE CHANNEL
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -172,8 +172,10 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      dispatch(addChannel(res.data)); // ✅ сразу показываем
+      // ✅ мгновенно добавим в UI (не ждём сокет)
+      dispatch(addChannel(res.data));
       dispatch(setCurrentChannelId(res.data.id));
+
       toast.success(t('toasts.channelCreated'));
       closeModal();
     } catch {
@@ -227,9 +229,10 @@ export default function HomePage() {
     }
   };
 
-  // SEND MESSAGE: фильтр + toast + мгновенный redux (чтоб тест не ждал socket)
+  // SEND MESSAGE
   const onSubmitMessage = async (e) => {
     e.preventDefault();
+
     const raw = text.trim();
     if (!raw || !currentChannelId) return;
 
@@ -245,8 +248,10 @@ export default function HomePage() {
         username,
       });
 
-      // если backend возвращает сообщение — добавим сразу
-      if (res?.data?.id != null) dispatch(addMessage(res.data));
+      // ✅ мгновенно покажем сообщение (на случай если тест не ждёт сокет)
+      if (res?.data?.id != null) {
+        dispatch(addMessage(res.data));
+      }
 
       setText('');
     } catch {
@@ -257,10 +262,8 @@ export default function HomePage() {
     }
   };
 
-  // ранний return после хуков — безопасно
-  if (!auth.isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // ранний return после хуков
+  if (!auth.isAuthenticated) return <Navigate to="/login" replace />;
 
   if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
   if (loadError) return <div style={{ padding: 24 }}>{loadError}</div>;
@@ -316,7 +319,7 @@ export default function HomePage() {
                   split
                   variant={isActive ? 'primary' : 'light'}
                   id={`ch-${c.id}`}
-                  aria-label={t('chat.channelManagement')} // ✅ важно для тестов
+                  aria-label={t('chat.channelManagement')}
                 />
 
                 <Dropdown.Menu>
@@ -352,7 +355,7 @@ export default function HomePage() {
         <form onSubmit={onSubmitMessage} style={{ display: 'flex', gap: 8 }}>
           <input
             type="text"
-            aria-label={t('chat.newMessageLabel')} // ✅ важно для тестов
+            aria-label={t('chat.newMessageLabel')}
             placeholder={t('chat.messagePlaceholder')}
             style={{ flex: 1 }}
             value={text}

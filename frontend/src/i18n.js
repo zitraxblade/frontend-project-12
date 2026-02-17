@@ -54,29 +54,34 @@ const resources = {
       },
 
       chat: {
-        channels: 'Каналы',
-        messagesCount: 'сообщений: {{count}}',
-        messagePlaceholder: 'Введите сообщение...',
-        sendFailed: 'Ошибка соединения', // ✅ тесты ждут именно это
-        loadFailed: 'Не удалось загрузить данные.',
-        channelNotSelected: 'Канал не выбран',
+  channels: 'Каналы',
+  messagesCount: 'сообщений: {{count}}',
+  messagePlaceholder: 'Введите сообщение...',
+  sendFailed: 'Ошибка соединения',
+  loadFailed: 'Не удалось загрузить данные.',
+  channelNotSelected: 'Канал не выбран',
 
-        newMessageLabel: 'Новое сообщение', // ✅ label/aria для инпута
-        channelManagement: 'Управление каналом', // ✅ aria-label для dropdown
-      },
+  // ✅ для тестов (лейбл инпута сообщения)
+  newMessageLabel: 'Новое сообщение',
+
+  // ✅ для aria-label на кнопке меню канала
+  channelManagement: 'Управление каналом',
+},
 
       modals: {
-        addChannelTitle: 'Добавить канал',
-        renameChannelTitle: 'Переименовать',
-        removeChannelTitle: 'Удалить',
+  addChannelTitle: 'Добавить канал',
 
-        channelNameLabel: 'Имя канала', // ✅ тесты ищут по label
+  // ✅ тесты ждут ровно эти слова
+  renameChannelTitle: 'Переименовать',
+  removeChannelTitle: 'Удалить',
 
-        removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
-        createFailed: 'Не удалось создать канал. Попробуйте ещё раз.',
-        renameFailed: 'Не удалось переименовать. Попробуйте ещё раз.',
-        removeFailed: 'Не удалось удалить канал. Попробуйте ещё раз.',
-      },
+  channelNameLabel: 'Имя канала',
+
+  removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
+  createFailed: 'Не удалось создать канал. Попробуйте ещё раз.',
+  renameFailed: 'Не удалось переименовать. Попробуйте ещё раз.',
+  removeFailed: 'Не удалось удалить канал. Попробуйте ещё раз.',
+},
 
       notFound: {
         title: 'Страница не найдена',
