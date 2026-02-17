@@ -35,6 +35,7 @@ export default function HomePage() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
+  // socket стабилен между рендерами
   const socketRef = useRef(null);
   if (!socketRef.current) socketRef.current = createSocket();
   const socket = socketRef.current;
@@ -71,6 +72,7 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
+  // INIT
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -105,6 +107,7 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
+  // SOCKET
   useEffect(() => {
     if (!auth.token) return;
 
@@ -161,6 +164,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null });
 
+  // CREATE CHANNEL (REST ок)
   const submitAdd = async (name) => {
     setModalSubmitting(true);
     setModalError(null);
@@ -182,6 +186,7 @@ export default function HomePage() {
     }
   };
 
+  // ✅ RENAME CHANNEL (socket + ack)
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -191,10 +196,22 @@ export default function HomePage() {
 
     try {
       const safeName = clean(name);
-      const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      const payload = res?.data?.id != null ? res.data : { id: ch.id, name: safeName };
-      dispatch(renameChannel(payload));
+      await new Promise((resolve, reject) => {
+        socket.timeout(5000).emit(
+          'renameChannel',
+          { id: ch.id, name: safeName },
+          (err, response) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            const data = response?.data ?? response;
+            dispatch(renameChannel(data ?? { id: ch.id, name: safeName }));
+            resolve();
+          },
+        );
+      });
 
       toast.success(t('toasts.channelRenamed'));
       closeModal();
@@ -206,6 +223,7 @@ export default function HomePage() {
     }
   };
 
+  // ✅ REMOVE CHANNEL (socket + ack)
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -214,7 +232,16 @@ export default function HomePage() {
     setModalError(null);
 
     try {
-      await api.delete(`/channels/${ch.id}`);
+      await new Promise((resolve, reject) => {
+        socket.timeout(5000).emit('removeChannel', { id: ch.id }, (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+
       toast.success(t('toasts.channelRemoved'));
       closeModal();
     } catch {
@@ -225,6 +252,7 @@ export default function HomePage() {
     }
   };
 
+  // SEND MESSAGE (REST)
   const onSubmitMessage = async (e) => {
     e.preventDefault();
 
