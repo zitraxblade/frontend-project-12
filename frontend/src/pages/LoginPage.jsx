@@ -55,7 +55,7 @@ export default function LoginPage() {
             )}
 
             <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+              {t('auth.signIn')}
             </button>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
