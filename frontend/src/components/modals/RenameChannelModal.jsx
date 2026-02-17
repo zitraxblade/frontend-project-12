@@ -29,8 +29,8 @@ export default function RenameChannelModal({
       .required(t('validation.required'))
       .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = (value ?? '').trim().toLowerCase();
-        const init = (initialName ?? '').trim().toLowerCase();
-        if (v === init) return true;
+        // разрешаем оставить старое имя
+        if (v === (initialName ?? '').trim().toLowerCase()) return true;
         return !existingNames.includes(v);
       }),
   });
@@ -50,8 +50,11 @@ export default function RenameChannelModal({
         {({ handleSubmit, handleChange, values, errors, touched }) => (
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
-              <Form.Group controlId="renameChannelName">
-                <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
+              <Form.Group>
+                <Form.Label className="visually-hidden">
+                  {t('modals.channelNameLabel')}
+                </Form.Label>
+
                 <Form.Control
                   ref={inputRef}
                   name="name"
@@ -73,7 +76,7 @@ export default function RenameChannelModal({
                 {t('common.cancel')}
               </Button>
               <Button type="submit" variant="primary" disabled={submitting}>
-                {t('common.send')}
+                {submitting ? t('common.sending') : t('common.send')}
               </Button>
             </Modal.Footer>
           </Form>
