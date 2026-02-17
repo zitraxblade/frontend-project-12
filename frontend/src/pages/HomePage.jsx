@@ -285,52 +285,45 @@ export default function HomePage() {
           {channels.map((c) => {
             const isActive = String(c.id) === String(currentChannelId);
 
+            // НЕудаляемые каналы — просто кнопка
             if (!c.removable) {
               return (
                 <Button
                   key={c.id}
-                  variant={isActive ? 'primary' : 'light'}
+                  variant={isActive ? 'secondary' : 'light'}
+                  className="w-100 rounded-0 text-start text-truncate"
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{
-                    textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
                 >
-                  # {c.name}
+                  <span className="me-1">#</span>
+                  {c.name}
                 </Button>
               );
             }
 
+            // Удаляемые — кнопка + dropdown-тоггл (тесты кликают по aria-label)
             return (
-              <Dropdown as={ButtonGroup} key={c.id}>
+              <Dropdown as={ButtonGroup} key={c.id} className="d-flex">
                 <Button
-                  variant={isActive ? 'primary' : 'light'}
+                  variant={isActive ? 'secondary' : 'light'}
+                  className="w-100 rounded-0 text-start text-truncate"
                   onClick={() => dispatch(setCurrentChannelId(c.id))}
-                  style={{
-                    textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
                 >
-                  # {c.name}
+                  <span className="me-1">#</span>
+                  {c.name}
                 </Button>
 
                 <Dropdown.Toggle
                   split
-                  variant={isActive ? 'primary' : 'light'}
-                  id={`ch-${c.id}`}
+                  variant={isActive ? 'secondary' : 'light'}
+                  id={`channel-control-${c.id}`}
                   aria-label={t('chat.channelManagement')}
                 />
 
-                {/* ✅ важно для Playwright: пункты меню всегда есть в DOM */}
                 <Dropdown.Menu renderOnMount>
-                  <Dropdown.Item onClick={() => openRename(c)}>
+                  <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
                     {t('modals.renameChannelTitle')}
                   </Dropdown.Item>
-                  <Dropdown.Item onClick={() => openRemove(c)}>
+                  <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
                     {t('modals.removeChannelTitle')}
                   </Dropdown.Item>
                 </Dropdown.Menu>
