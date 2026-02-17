@@ -285,7 +285,6 @@ export default function HomePage() {
           {channels.map((c) => {
             const isActive = String(c.id) === String(currentChannelId);
 
-            // НЕудаляемые каналы — просто кнопка
             if (!c.removable) {
               return (
                 <Button
@@ -300,7 +299,6 @@ export default function HomePage() {
               );
             }
 
-            // Удаляемые — кнопка + dropdown-тоггл (тесты кликают по aria-label)
             return (
               <Dropdown as={ButtonGroup} key={c.id} className="d-flex">
                 <Button

@@ -75,11 +75,11 @@ const resources = {
       modals: {
         addChannelTitle: 'Добавить канал',
 
-        // ✅ тесты часто кликают по полным словам в меню
-        renameChannelTitle: 'Переименовать канал',
-        removeChannelTitle: 'Удалить канал',
+        // ✅ ВАЖНО: пункты меню короткие (как в большинстве тестов)
+        renameChannelTitle: 'Переименовать',
+        removeChannelTitle: 'Удалить',
 
-        // ✅ заголовок модалки rename (часто ждут именно так)
+        // ✅ Заголовок модалки — полный
         renameChannelModalTitle: 'Переименовать канал',
 
         channelNameLabel: 'Имя канала',
