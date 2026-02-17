@@ -2,80 +2,51 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   items: [],
-  currentChannelId: null,
+  currentChannelId: '1',
 };
 
 const normalizeId = (v) => String(v);
-
-const extractRename = (payload) => {
-  if (!payload) return { id: null, name: null };
-
-  // варианты, которые могут прийти:
-  // 1) { id, name }
-  if (payload.id != null && typeof payload.name === 'string') {
-    return { id: payload.id, name: payload.name };
-  }
-
-  // 2) { id, changes: { name } }
-  if (payload.id != null && payload.changes && typeof payload.changes.name === 'string') {
-    return { id: payload.id, name: payload.changes.name };
-  }
-
-  // 3) { id, channel: { name } }
-  if (payload.id != null && payload.channel && typeof payload.channel.name === 'string') {
-    return { id: payload.id, name: payload.channel.name };
-  }
-
-  // 4) целый канал { id, ... } (например, с API/сокета)
-  if (payload.id != null && typeof payload.name === 'string') {
-    return { id: payload.id, name: payload.name };
-  }
-
-  return { id: null, name: null };
-};
 
 const channelsSlice = createSlice({
   name: 'channels',
   initialState,
   reducers: {
     setChannels(state, action) {
-      const { channels, currentChannelId } = action.payload ?? {};
+      const { channels, currentChannelId } = action.payload || {};
       state.items = Array.isArray(channels) ? channels : [];
-      state.currentChannelId = currentChannelId != null ? normalizeId(currentChannelId) : null;
+      state.currentChannelId = currentChannelId != null ? normalizeId(currentChannelId) : '1';
     },
 
     setCurrentChannelId(state, action) {
-      state.currentChannelId = action.payload != null ? normalizeId(action.payload) : null;
+      state.currentChannelId = normalizeId(action.payload);
     },
 
     addChannel(state, action) {
-      const ch = action.payload;
-      if (!ch || ch.id == null) return;
-
-      const id = normalizeId(ch.id);
-      const exists = state.items.some((c) => normalizeId(c.id) === id);
-      if (!exists) state.items.push(ch);
+      state.items.push(action.payload);
     },
 
     removeChannel(state, action) {
       const id = normalizeId(action.payload);
       state.items = state.items.filter((c) => normalizeId(c.id) !== id);
 
-      // если удалили текущий — оставим как есть, HomePage сам выставит дефолт
-      if (state.currentChannelId != null && normalizeId(state.currentChannelId) === id) {
-        state.currentChannelId = null;
+      if (normalizeId(state.currentChannelId) === id) {
+        const first = state.items[0];
+        state.currentChannelId = first ? normalizeId(first.id) : '1';
       }
     },
 
     renameChannel(state, action) {
-      const { id, name } = extractRename(action.payload);
-      if (id == null || typeof name !== 'string') return;
+      // поддерживаем разные формы payload:
+      // 1) { id, name } (мы так диспатчим)
+      // 2) { id, name, ... } (так может приходить с сервера/сокета)
+      const payload = action.payload || {};
+      const id = normalizeId(payload.id);
+      const name = payload.name;
 
-      const sid = normalizeId(id);
-      const ch = state.items.find((c) => normalizeId(c.id) === sid);
-      if (!ch) return;
-
-      ch.name = name;
+      const ch = state.items.find((c) => normalizeId(c.id) === id);
+      if (ch && typeof name === 'string') {
+        ch.name = name;
+      }
     },
   },
 });
