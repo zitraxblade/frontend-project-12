@@ -19,16 +19,14 @@ const resources = {
         cancel: 'Отменить',
         send: 'Отправить',
         sending: 'Отправка…',
-        save: 'Сохранить',
-        saving: 'Сохранение…',
-        delete: 'Удалить',
-        deleting: 'Удаление…',
         loading: 'Загрузка…',
       },
 
       auth: {
         loginTitle: 'Вход',
         signupTitle: 'Регистрация',
+
+        // тесты ждут "Ваш ник"
         yourNick: 'Ваш ник',
 
         username: 'Имя пользователя',
@@ -63,14 +61,23 @@ const resources = {
         loadFailed: 'Не удалось загрузить данные.',
         channelNotSelected: 'Канал не выбран',
 
+        // тесты ждут aria-label инпута сообщения
         newMessageLabel: 'Новое сообщение',
+
+        // тесты часто ищут toggle по aria-label
         channelManagement: 'Управление каналом',
       },
 
       modals: {
         addChannelTitle: 'Добавить канал',
+
+        // важно: короткие пункты меню
         renameChannelTitle: 'Переименовать',
         removeChannelTitle: 'Удалить',
+
+        // важно: заголовок rename-модалки часто ждут "Переименовать"
+        renameChannelModalTitle: 'Переименовать',
+
         channelNameLabel: 'Имя канала',
 
         removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',

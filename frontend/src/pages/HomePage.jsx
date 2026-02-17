@@ -1,6 +1,8 @@
 import { toast } from 'react-toastify';
 import { Navigate } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
@@ -72,7 +74,7 @@ export default function HomePage() {
     [messages, currentChannelId],
   );
 
-  // INIT
+  // INIT: загрузка каналов/сообщений
   useEffect(() => {
     if (!auth.token) {
       setLoading(false);
@@ -89,8 +91,8 @@ export default function HomePage() {
           api.get('/messages'),
         ]);
 
-        const ch = channelsRes.data;
-        const msgs = messagesRes.data;
+        const ch = channelsRes.data ?? [];
+        const msgs = messagesRes.data ?? [];
 
         const curId = ch.length > 0 ? String(ch[0].id) : DEFAULT_CHANNEL_ID;
 
@@ -107,7 +109,7 @@ export default function HomePage() {
     load();
   }, [auth.token, dispatch, t]);
 
-  // SOCKET (только слушаем события)
+  // SOCKET: слушаем события
   useEffect(() => {
     if (!auth.token) return;
 
@@ -118,7 +120,7 @@ export default function HomePage() {
     const onNewChannel = (payload) => dispatch(addChannel(payload));
 
     const onRemoveChannel = (payload) => {
-      const removedId = String(payload.id);
+      const removedId = String(payload?.id);
 
       dispatch(removeChannel(removedId));
       dispatch(removeMessagesByChannel(removedId));
@@ -173,6 +175,7 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
+      // тестам важно, чтобы UI обновился сразу
       dispatch(addChannel(res.data));
       dispatch(setCurrentChannelId(res.data.id));
 
@@ -186,7 +189,7 @@ export default function HomePage() {
     }
   };
 
-  // RENAME CHANNEL (REST + мгновенный redux)
+  // RENAME CHANNEL
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -199,7 +202,7 @@ export default function HomePage() {
     try {
       await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      // важно: обновляем сразу, даже если сервер ничего не вернул
+      // важно: обновить сразу, не ждать сокет
       dispatch(renameChannel({ id: ch.id, name: safeName }));
 
       toast.success(t('toasts.channelRenamed'));
@@ -212,7 +215,7 @@ export default function HomePage() {
     }
   };
 
-  // REMOVE CHANNEL (REST)
+  // REMOVE CHANNEL
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -223,7 +226,7 @@ export default function HomePage() {
     try {
       await api.delete(`/channels/${ch.id}`);
 
-      // мгновенно обновим, чтобы не ждать сокет
+      // тоже обновляем сразу
       dispatch(removeChannel(String(ch.id)));
       dispatch(removeMessagesByChannel(String(ch.id)));
       if (String(currentChannelId) === String(ch.id)) {
@@ -270,110 +273,133 @@ export default function HomePage() {
   };
 
   if (!auth.isAuthenticated) return <Navigate to="/login" replace />;
-  if (loading) return <div style={{ padding: 24 }}>{t('common.loading')}</div>;
-  if (loadError) return <div style={{ padding: 24 }}>{loadError}</div>;
+  if (loading) return <div className="p-4">{t('common.loading')}</div>;
+  if (loadError) return <div className="p-4">{loadError}</div>;
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <aside style={{ width: 320, borderRight: '1px solid #ddd', padding: 12, overflow: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-          <b>{t('chat.channels')}</b>
+    <div className="h-100">
+      <div className="container-fluid h-100 my-4 overflow-hidden rounded shadow">
+        <div className="row h-100 flex-md-row bg-white">
+          {/* SIDEBAR */}
+          <div className="col-4 col-md-2 border-end px-0 bg-light flex-column h-100 d-flex">
+            <div className="d-flex mt-1 justify-content-between mb-2 ps-4 pe-2 p-4">
+              <b>{t('chat.channels')}</b>
+              <Button
+                variant="outline-primary"
+                className="p-0 text-primary btn-group-vertical"
+                onClick={openAdd}
+                aria-label={t('modals.addChannelTitle')}
+              >
+                <span className="visually-hidden">+</span>
+                +
+              </Button>
+            </div>
 
-          <Button
-            size="sm"
-            variant="outline-primary"
-            onClick={openAdd}
-            aria-label={t('modals.addChannelTitle')}
-          >
-            +
-          </Button>
-        </div>
+            <ul className="nav flex-column nav-pills nav-fill px-2 mb-3 overflow-auto h-100 d-block">
+              {channels.map((c) => {
+                const isActive = String(c.id) === String(currentChannelId);
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {channels.map((c) => {
-            const isActive = String(c.id) === String(currentChannelId);
+                if (!c.removable) {
+                  return (
+                    <li className="nav-item w-100" key={c.id}>
+                      <Button
+                        type="button"
+                        variant={isActive ? 'secondary' : 'light'}
+                        className="w-100 rounded-0 text-start text-truncate"
+                        onClick={() => dispatch(setCurrentChannelId(c.id))}
+                      >
+                        <span className="me-1">#</span>
+                        {c.name}
+                      </Button>
+                    </li>
+                  );
+                }
 
-            if (!c.removable) {
-              return (
-                <Button
-                  key={c.id}
-                  variant={isActive ? 'secondary' : 'light'}
-                  className="w-100 rounded-0 text-start text-truncate"
-                  onClick={() => dispatch(setCurrentChannelId(c.id))}
-                >
-                  <span className="me-1">#</span>
-                  {c.name}
-                </Button>
-              );
-            }
+                return (
+                  <li className="nav-item w-100" key={c.id}>
+                    <Dropdown as={ButtonGroup} className="d-flex">
+                      <Button
+                        type="button"
+                        variant={isActive ? 'secondary' : 'light'}
+                        className="w-100 rounded-0 text-start text-truncate"
+                        onClick={() => dispatch(setCurrentChannelId(c.id))}
+                      >
+                        <span className="me-1">#</span>
+                        {c.name}
+                      </Button>
 
-            return (
-              <Dropdown as={ButtonGroup} key={c.id} className="d-flex">
-                <Button
-                  variant={isActive ? 'secondary' : 'light'}
-                  className="w-100 rounded-0 text-start text-truncate"
-                  onClick={() => dispatch(setCurrentChannelId(c.id))}
-                >
-                  <span className="me-1">#</span>
-                  {c.name}
-                </Button>
+                      <Dropdown.Toggle
+                        split
+                        variant={isActive ? 'secondary' : 'light'}
+                        id={`channel-control-${c.id}`}
+                        aria-label={t('chat.channelManagement')}
+                      />
 
-                <Dropdown.Toggle
-                  split
-                  variant={isActive ? 'secondary' : 'light'}
-                  id={`channel-control-${c.id}`}
-                  aria-label={t('chat.channelManagement')}
-                />
+                      {/* важно: пусть пункты будут в DOM сразу */}
+                      <Dropdown.Menu renderOnMount>
+                        <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
+                          {t('modals.renameChannelTitle')}
+                        </Dropdown.Item>
+                        <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
+                          {t('modals.removeChannelTitle')}
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
 
-                {/* ✅ ВАЖНО: Dropdown.Item без as="button" — тогда роль menuitem */}
-                <Dropdown.Menu renderOnMount>
-                  <Dropdown.Item onClick={() => openRemove(c)}>
-                    {t('modals.removeChannelTitle')}
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={() => openRename(c)}>
-                    {t('modals.renameChannelTitle')}
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            );
-          })}
-        </div>
-      </aside>
+          {/* MAIN */}
+          <div className="col p-0 h-100">
+            <div className="d-flex flex-column h-100">
+              <div className="bg-light mb-4 p-3 shadow-sm small">
+                <p className="m-0">
+                  <b>{currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}</b>
+                </p>
+                <span className="text-muted">
+                  {t('chat.messagesCount', { count: visibleMessages.length })}
+                </span>
+              </div>
 
-      <main style={{ flex: 1, padding: 12, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ borderBottom: '1px solid #ddd', paddingBottom: 8, marginBottom: 8 }}>
-          <b>{currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}</b>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            {t('chat.messagesCount', { count: visibleMessages.length })}
+              <div className="chat-messages overflow-auto px-5">
+                {visibleMessages.map((m) => (
+                  <div className="text-break mb-2" key={m.id}>
+                    <b>{m.username}</b>
+                    {': '}
+                    {m.body}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-auto px-5 py-3">
+                <form className="py-1 border rounded-2" noValidate onSubmit={onSubmitMessage}>
+                  <div className="input-group has-validation">
+                    <input
+                      name="body"
+                      type="text"
+                      aria-label={t('chat.newMessageLabel')}
+                      placeholder={t('chat.messagePlaceholder')}
+                      className="border-0 p-0 ps-2 form-control"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      disabled={sending}
+                    />
+                    <Button type="submit" variant="group-vertical" disabled={sending || text.trim().length === 0}>
+                      {sending ? t('common.sending') : t('common.send')}
+                    </Button>
+                  </div>
+                </form>
+
+                {sendError && <div className="text-danger mt-2">{sendError}</div>}
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
-          {visibleMessages.map((m) => (
-            <div key={m.id} style={{ marginBottom: 8, wordBreak: 'break-word' }}>
-              <b>{m.username}</b>: {m.body}
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={onSubmitMessage} style={{ display: 'flex', gap: 8 }}>
-          <input
-            type="text"
-            aria-label={t('chat.newMessageLabel')}
-            placeholder={t('chat.messagePlaceholder')}
-            style={{ flex: 1 }}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={sending}
-          />
-          <button type="submit" disabled={sending || text.trim().length === 0}>
-            {sending ? t('common.sending') : t('common.send')}
-          </button>
-        </form>
-
-        {sendError && <div style={{ marginTop: 8, color: 'salmon' }}>{sendError}</div>}
-      </main>
-
+      {/* MODALS */}
       <AddChannelModal
         show={modal.type === 'add'}
         onHide={closeModal}
