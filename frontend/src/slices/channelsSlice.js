@@ -5,47 +5,55 @@ const initialState = {
   currentChannelId: '1',
 };
 
-const normalizeId = (v) => String(v);
-
 const channelsSlice = createSlice({
   name: 'channels',
   initialState,
   reducers: {
+    // payload: { channels: [...], currentChannelId }
     setChannels(state, action) {
-      const { channels, currentChannelId } = action.payload || {};
-      state.items = Array.isArray(channels) ? channels : [];
-      state.currentChannelId = currentChannelId != null ? normalizeId(currentChannelId) : '1';
-    },
-
-    setCurrentChannelId(state, action) {
-      state.currentChannelId = normalizeId(action.payload);
-    },
-
-    addChannel(state, action) {
-      state.items.push(action.payload);
-    },
-
-    removeChannel(state, action) {
-      const id = normalizeId(action.payload);
-      state.items = state.items.filter((c) => normalizeId(c.id) !== id);
-
-      if (normalizeId(state.currentChannelId) === id) {
-        const first = state.items[0];
-        state.currentChannelId = first ? normalizeId(first.id) : '1';
+      const { channels = [], currentChannelId } = action.payload || {};
+      state.items = channels;
+      if (currentChannelId != null) {
+        state.currentChannelId = String(currentChannelId);
+      } else if (channels[0]?.id != null) {
+        state.currentChannelId = String(channels[0].id);
       }
     },
 
-    renameChannel(state, action) {
-      // поддерживаем разные формы payload:
-      // 1) { id, name } (мы так диспатчим)
-      // 2) { id, name, ... } (так может приходить с сервера/сокета)
-      const payload = action.payload || {};
-      const id = normalizeId(payload.id);
-      const name = payload.name;
+    // payload: id
+    setCurrentChannelId(state, action) {
+      state.currentChannelId = String(action.payload);
+    },
 
-      const ch = state.items.find((c) => normalizeId(c.id) === id);
-      if (ch && typeof name === 'string') {
-        ch.name = name;
+    // payload: { id, name, removable? }
+    addChannel(state, action) {
+      const ch = action.payload;
+      if (!ch?.id) return;
+
+      const id = String(ch.id);
+      const exists = state.items.some((c) => String(c.id) === id);
+      if (!exists) state.items.push(ch);
+    },
+
+    // payload: id
+    removeChannel(state, action) {
+      const id = String(action.payload);
+      state.items = state.items.filter((c) => String(c.id) !== id);
+
+      if (String(state.currentChannelId) === id) {
+        const fallback = state.items[0]?.id ?? '1';
+        state.currentChannelId = String(fallback);
+      }
+    },
+
+    // payload: { id, name }
+    renameChannel(state, action) {
+      const { id, name } = action.payload || {};
+      if (id == null) return;
+
+      const target = state.items.find((c) => String(c.id) === String(id));
+      if (target && name != null) {
+        target.name = name;
       }
     },
   },

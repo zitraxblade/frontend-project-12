@@ -128,6 +128,7 @@ export default function HomePage() {
       }
     };
 
+    // важно: payload сокета может быть { id, name }
     const onRenameChannel = (payload) => dispatch(renameChannel(payload));
 
     socket.on('newMessage', onNewMessage);
@@ -186,7 +187,7 @@ export default function HomePage() {
     }
   };
 
-  // RENAME CHANNEL
+  // RENAME CHANNEL — ключевой фикс: всегда обновляем Redux сразу
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -194,13 +195,13 @@ export default function HomePage() {
     setModalSubmitting(true);
     setModalError(null);
 
-    try {
-      const safeName = clean(name);
-      const res = await api.patch(`/channels/${ch.id}`, { name: safeName });
+    const safeName = clean(name);
 
-      // ✅ сразу обновляем UI (тесты не ждут socket)
-      const payload = res?.data?.id != null ? res.data : { id: ch.id, name: safeName };
-      dispatch(renameChannel(payload));
+    try {
+      await api.patch(`/channels/${ch.id}`, { name: safeName });
+
+      // ✅ не ждём сокет и не зависим от res.data
+      dispatch(renameChannel({ id: ch.id, name: safeName }));
 
       toast.success(t('toasts.channelRenamed'));
       closeModal();
@@ -319,7 +320,6 @@ export default function HomePage() {
                 />
 
                 <Dropdown.Menu renderOnMount>
-                  {/* ✅ важно для тестов: role="menuitem" */}
                   <Dropdown.Item
                     as="button"
                     type="button"
