@@ -36,7 +36,7 @@ export default function LoginPage() {
           <Form>
             <div style={{ marginBottom: 12 }}>
               <label htmlFor="username" style={{ display: 'block', marginBottom: 6 }}>
-                {t('auth.username')}
+                {t('auth.yourNick')}
               </label>
               <Field id="username" name="username" type="text" autoComplete="username" />
             </div>

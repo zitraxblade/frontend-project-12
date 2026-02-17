@@ -5,13 +5,14 @@ const resources = {
   ru: {
     translation: {
       appName: 'Hexlet Chat',
+
       toasts: {
-  loadFailed: 'Не удалось загрузить данные',
-  networkError: 'Ошибка сети',
-  channelCreated: 'Канал создан',
-  channelRenamed: 'Канал переименован',
-  channelRemoved: 'Канал удалён',
-},
+        loadFailed: 'Не удалось загрузить данные',
+        networkError: 'Ошибка соединения',
+        channelCreated: 'Канал создан',
+        channelRenamed: 'Канал переименован',
+        channelRemoved: 'Канал удалён',
+      },
 
       common: {
         logout: 'Выйти',
@@ -28,12 +29,18 @@ const resources = {
       auth: {
         loginTitle: 'Вход',
         signupTitle: 'Регистрация',
+
+        // важно для тестов:
+        yourNick: 'Ваш ник',
         username: 'Имя пользователя',
+
         password: 'Пароль',
-        confirmPassword: 'Подтверждение пароля',
+        confirmPassword: 'Подтвердите пароль',
+
         signIn: 'Войти',
         signUp: 'Зарегистрироваться',
         signingIn: 'Вход…',
+
         testUser: 'Тестовый пользователь: admin / admin',
         noAccount: 'Нет аккаунта?',
         haveAccount: 'Уже есть аккаунт?',
@@ -56,15 +63,18 @@ const resources = {
         channels: 'Каналы',
         messagesCount: 'сообщений: {{count}}',
         messagePlaceholder: 'Введите сообщение...',
-        sendFailed: 'Не удалось отправить сообщение. Проверьте соединение.',
+        sendFailed: 'Ошибка соединения',
         loadFailed: 'Не удалось загрузить данные.',
         channelNotSelected: 'Канал не выбран',
       },
 
       modals: {
         addChannelTitle: 'Добавить канал',
-        renameChannelTitle: 'Переименовать канал',
-        removeChannelTitle: 'Удалить канал',
+        renameChannelTitle: 'Переименовать',
+        removeChannelTitle: 'Удалить',
+        channelNameLabel: 'Имя канала',
+        channelManagement: 'Управление каналом',
+
         removeConfirm: 'Уверены, что хотите удалить канал #{{name}}?',
         createFailed: 'Не удалось создать канал. Попробуйте ещё раз.',
         renameFailed: 'Не удалось переименовать. Попробуйте ещё раз.',
@@ -83,11 +93,9 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'ru',           // ВАЖНО: дефолтная локаль ru
+    lng: 'ru',
     fallbackLng: 'ru',
-    interpolation: {
-      escapeValue: false,
-    },
+    interpolation: { escapeValue: false },
   });
 
 export default i18n;
