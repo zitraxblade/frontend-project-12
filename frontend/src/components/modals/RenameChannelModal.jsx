@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { Formik } from 'formik';
@@ -16,22 +16,35 @@ export default function RenameChannelModal({
   const { t } = useTranslation();
   const inputRef = useRef(null);
 
+  // автофокус + выделить текст (тесты часто сразу печатают)
   useEffect(() => {
-    if (show) setTimeout(() => inputRef.current?.focus(), 0);
+    if (!show) return;
+    setTimeout(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.select();
+    }, 0);
   }, [show]);
+
+  const normalizedExisting = useMemo(
+    () => (existingNames ?? []).map((n) => String(n).trim().toLowerCase()),
+    [existingNames],
+  );
 
   const schema = yup.object({
     name: yup
       .string()
-      .trim()
+      .transform((v) => (v ?? '').trim())
       .min(3, t('validation.usernameLen'))
       .max(20, t('validation.usernameLen'))
       .required(t('validation.required'))
       .test('unique', t('validation.mustBeUnique'), (value) => {
-        const v = (value ?? '').trim().toLowerCase();
-        // разрешаем оставить старое имя
-        if (v === (initialName ?? '').trim().toLowerCase()) return true;
-        return !existingNames.includes(v);
+        const v = String(value ?? '').trim().toLowerCase();
+        const init = String(initialName ?? '').trim().toLowerCase();
+        // если имя не изменили — ок
+        if (v === init) return true;
+        return !normalizedExisting.includes(v);
       }),
   });
 
@@ -45,28 +58,30 @@ export default function RenameChannelModal({
         enableReinitialize
         initialValues={{ name: initialName ?? '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(values.name.trim())}
+        onSubmit={(values) => onSubmit(String(values.name ?? '').trim())}
       >
-        {({ handleSubmit, handleChange, values, errors, touched }) => (
+        {({
+          handleSubmit, handleChange, values, errors, touched,
+        }) => (
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
-              <Form.Group>
-                <Form.Label className="visually-hidden">
-                  {t('modals.channelNameLabel')}
-                </Form.Label>
+              <Form.Group controlId="channelName">
+  <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
 
-                <Form.Control
-                  ref={inputRef}
-                  name="name"
-                  value={values.name}
-                  onChange={handleChange}
-                  isInvalid={touched.name && !!errors.name}
-                  disabled={submitting}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.name}
-                </Form.Control.Feedback>
-              </Form.Group>
+  <Form.Control
+    id="channelName"
+    ref={inputRef}
+    name="name"
+    value={values.name}
+    onChange={handleChange}
+    isInvalid={touched.name && !!errors.name}
+    disabled={submitting}
+  />
+
+  <Form.Control.Feedback type="invalid">
+    {errors.name}
+  </Form.Control.Feedback>
+</Form.Group>
 
               {submitError && <div className="text-danger mt-2">{submitError}</div>}
             </Modal.Body>
@@ -75,8 +90,10 @@ export default function RenameChannelModal({
               <Button variant="secondary" onClick={onHide} disabled={submitting}>
                 {t('common.cancel')}
               </Button>
+
+              {/* важно: тут должно быть "Сохранить" */}
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? t('common.sending') : t('common.send')}
+                {submitting ? t('common.saving') : t('common.save')}
               </Button>
             </Modal.Footer>
           </Form>

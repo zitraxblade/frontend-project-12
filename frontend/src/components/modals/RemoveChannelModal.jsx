@@ -11,23 +11,26 @@ export default function RemoveChannelModal({
 }) {
   const { t } = useTranslation();
 
+  const safeHide = () => {
+    if (!submitting) onHide();
+  };
+
   return (
-    <Modal show={show} onHide={() => !submitting && onHide()} centered>
+    <Modal show={show} onHide={safeHide} centered aria-label={t('modals.removeChannelTitle')}>
       <Modal.Header closeButton={!submitting}>
         <Modal.Title>{t('modals.removeChannelTitle')}</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <div>
-          {t('modals.removeConfirm', { name: channelName })}
-        </div>
+        <div>{t('modals.removeConfirm', { name: channelName })}</div>
         {submitError && <div className="text-danger mt-2">{submitError}</div>}
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide} disabled={submitting}>
+        <Button variant="secondary" onClick={safeHide} disabled={submitting}>
           {t('common.cancel')}
         </Button>
+
         <Button variant="danger" onClick={onConfirm} disabled={submitting}>
           {submitting ? t('common.deleting') : t('common.delete')}
         </Button>
