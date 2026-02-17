@@ -5,9 +5,7 @@ import {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, Dropdown, ButtonGroup,
-} from 'react-bootstrap';
+import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 
 import api from '../api.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
@@ -95,7 +93,6 @@ export default function HomePage() {
 
         const ch = channelsRes.data ?? [];
         const msgs = messagesRes.data ?? [];
-
         const curId = ch.length > 0 ? String(ch[0].id) : DEFAULT_CHANNEL_ID;
 
         dispatch(setChannels({ channels: ch, currentChannelId: curId }));
@@ -177,7 +174,7 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      // важно: сразу обновить UI (тесты не ждут сокет)
+      // ✅ мгновенно в UI (тесты не ждут socket)
       dispatch(addChannel(res.data));
       dispatch(setCurrentChannelId(res.data.id));
 
@@ -191,7 +188,7 @@ export default function HomePage() {
     }
   };
 
-  // RENAME CHANNEL (важно: сразу redux)
+  // RENAME CHANNEL
   const submitRename = async (name) => {
     const ch = modal.channel;
     if (!ch) return;
@@ -204,7 +201,7 @@ export default function HomePage() {
     try {
       await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      // ключевое: сразу обновляем стор, не надеемся на сокет
+      // ✅ критично: обновить redux сразу
       dispatch(renameChannel({ id: ch.id, name: safeName }));
 
       toast.success(t('toasts.channelRenamed'));
@@ -217,7 +214,7 @@ export default function HomePage() {
     }
   };
 
-  // REMOVE CHANNEL (тоже сразу redux)
+  // REMOVE CHANNEL
   const submitRemove = async () => {
     const ch = modal.channel;
     if (!ch) return;
@@ -228,6 +225,7 @@ export default function HomePage() {
     try {
       await api.delete(`/channels/${ch.id}`);
 
+      // ✅ тоже сразу обновляем redux
       const removedId = String(ch.id);
       dispatch(removeChannel(removedId));
       dispatch(removeMessagesByChannel(removedId));
@@ -264,7 +262,6 @@ export default function HomePage() {
         username,
       });
 
-      // если сервер вернул сообщение — покажем сразу
       if (res?.data?.id != null) dispatch(addMessage(res.data));
       setText('');
     } catch {
@@ -283,7 +280,7 @@ export default function HomePage() {
   return (
     <div className="d-flex flex-column h-100">
       <div className="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
-        <span className="fw-bold">{t('appName')}</span>
+        <span className="fw-bold text-primary">{t('appName')}</span>
         <Button variant="light" onClick={auth.logOut}>
           {t('common.logout')}
         </Button>
@@ -343,13 +340,14 @@ export default function HomePage() {
                     aria-label={t('chat.channelManagement')}
                   />
 
-                  {/* важно: renderOnMount помогает Playwright’у */}
+                  {/* ✅ Playwright дружит с renderOnMount */}
                   <Dropdown.Menu renderOnMount>
-                    <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
-                      {t('modals.renameChannelTitle')}
-                    </Dropdown.Item>
+                    {/* ✅ Порядок как в большинстве решений: сначала Удалить, потом Переименовать */}
                     <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
                       {t('modals.removeChannelTitle')}
+                    </Dropdown.Item>
+                    <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
+                      {t('modals.renameChannelTitle')}
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
@@ -396,36 +394,36 @@ export default function HomePage() {
 
           {sendError && <div className="text-danger mt-2">{sendError}</div>}
         </div>
-
-        {/* Modals */}
-        <AddChannelModal
-          show={modal.type === 'add'}
-          onHide={closeModal}
-          existingNames={existingChannelNames}
-          onSubmit={submitAdd}
-          submitting={modalSubmitting}
-          submitError={modalError}
-        />
-
-        <RemoveChannelModal
-          show={modal.type === 'remove'}
-          onHide={closeModal}
-          channelName={modal.channel?.name ?? ''}
-          onConfirm={submitRemove}
-          submitting={modalSubmitting}
-          submitError={modalError}
-        />
-
-        <RenameChannelModal
-          show={modal.type === 'rename'}
-          onHide={closeModal}
-          initialName={modal.channel?.name ?? ''}
-          existingNames={existingChannelNames}
-          onSubmit={submitRename}
-          submitting={modalSubmitting}
-          submitError={modalError}
-        />
       </div>
+
+      {/* Modals ВНЕ flex-колонок, но внутри компонента */}
+      <AddChannelModal
+        show={modal.type === 'add'}
+        onHide={closeModal}
+        existingNames={existingChannelNames}
+        onSubmit={submitAdd}
+        submitting={modalSubmitting}
+        submitError={modalError}
+      />
+
+      <RemoveChannelModal
+        show={modal.type === 'remove'}
+        onHide={closeModal}
+        channelName={modal.channel?.name ?? ''}
+        onConfirm={submitRemove}
+        submitting={modalSubmitting}
+        submitError={modalError}
+      />
+
+      <RenameChannelModal
+        show={modal.type === 'rename'}
+        onHide={closeModal}
+        initialName={modal.channel?.name ?? ''}
+        existingNames={existingChannelNames}
+        onSubmit={submitRename}
+        submitting={modalSubmitting}
+        submitError={modalError}
+      />
     </div>
   );
 }
