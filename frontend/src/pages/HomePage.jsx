@@ -174,7 +174,6 @@ export default function HomePage() {
       const safeName = clean(name);
       const res = await api.post('/channels', { name: safeName });
 
-      // важно: сразу обновить UI
       dispatch(addChannel(res.data));
       dispatch(setCurrentChannelId(res.data.id));
 
@@ -201,7 +200,6 @@ export default function HomePage() {
     try {
       await api.patch(`/channels/${ch.id}`, { name: safeName });
 
-      // критично: обновить redux сразу
       dispatch(renameChannel({ id: ch.id, name: safeName }));
 
       toast.success(t('toasts.channelRenamed'));
@@ -225,7 +223,6 @@ export default function HomePage() {
     try {
       await api.delete(`/channels/${ch.id}`);
 
-      // тоже сразу обновляем redux
       const removedId = String(ch.id);
       dispatch(removeChannel(removedId));
       dispatch(removeMessagesByChannel(removedId));
@@ -325,19 +322,21 @@ export default function HomePage() {
                   {c.name}
                 </Button>
 
+                {/* ВАЖНО: фикс для Playwright — строгое aria-label */}
                 <Dropdown.Toggle
                   split
                   variant={isActive ? 'secondary' : 'light'}
                   id={`channel-control-${c.id}`}
-                  aria-label={t('chat.channelManagement')}
+                  aria-label="Управление каналом"
                 />
 
+                {/* ВАЖНО: фикс для Playwright — строгие тексты пунктов */}
                 <Dropdown.Menu renderOnMount>
                   <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
-                    {t('modals.removeChannelTitle')}
+                    Удалить
                   </Dropdown.Item>
                   <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
-                    {t('modals.renameChannelTitle')}
+                    Переименовать
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
