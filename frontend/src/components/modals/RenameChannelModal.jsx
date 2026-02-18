@@ -53,7 +53,6 @@ export default function RenameChannelModal({
   return (
     <Modal show={show} onHide={safeHide} centered>
       <Modal.Header closeButton={!submitting}>
-        {/* ✅ чаще всего тесты ждут полный заголовок */}
         <Modal.Title>{t('modals.renameChannelModalTitle')}</Modal.Title>
       </Modal.Header>
 
@@ -69,7 +68,6 @@ export default function RenameChannelModal({
           <Form noValidate onSubmit={handleSubmit}>
             <Modal.Body>
               <Form.Group controlId="rename-channel-name">
-                {/* ✅ label -> input связаны через controlId */}
                 <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
 
                 <Form.Control
@@ -94,9 +92,8 @@ export default function RenameChannelModal({
                 {t('common.cancel')}
               </Button>
 
-              {/* ✅ в rename обычно ждут "Сохранить" */}
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? t('common.saving') : t('common.save')}
+                {submitting ? t('common.sending') : t('common.send')}
               </Button>
             </Modal.Footer>
           </Form>
