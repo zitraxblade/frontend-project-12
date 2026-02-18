@@ -1,16 +1,17 @@
-import axios from 'axios';
-import { Formik, Form, Field } from 'formik';
-import { Navigate, useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../auth/AuthProvider.jsx';
+// frontend/src/pages/LoginPage.jsx
+import axios from 'axios'
+import { Formik, Form, Field } from 'formik'
+import { Navigate, useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import useAuth from '../auth/useAuth.js'
 
 export default function LoginPage() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const auth = useAuth();
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const auth = useAuth()
 
   if (auth.isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />
   }
 
   return (
@@ -20,15 +21,15 @@ export default function LoginPage() {
       <Formik
         initialValues={{ username: '', password: '' }}
         onSubmit={async (values, { setSubmitting, setStatus }) => {
-          setStatus(null);
+          setStatus(null)
           try {
-            const res = await axios.post('/api/v1/login', values);
-            auth.logIn(res.data);
-            navigate('/', { replace: true });
-          } catch (e) {
-            setStatus(t('auth.wrongCreds'));
+            const res = await axios.post('/api/v1/login', values)
+            auth.logIn(res.data)
+            navigate('/', { replace: true })
+          } catch {
+            setStatus(t('auth.wrongCreds'))
           } finally {
-            setSubmitting(false);
+            setSubmitting(false)
           }
         }}
       >
@@ -63,11 +64,12 @@ export default function LoginPage() {
             </div>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
-              {t('auth.noAccount')} <Link to="/signup">{t('auth.registerLink')}</Link>
+              {t('auth.noAccount')}{' '}
+              <Link to="/signup">{t('auth.registerLink')}</Link>
             </div>
           </Form>
         )}
       </Formik>
     </div>
-  );
+  )
 }

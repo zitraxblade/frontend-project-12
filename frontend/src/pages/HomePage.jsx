@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 
 import api from '../api.js';
-import { useAuth } from '../auth/AuthProvider.jsx';
+import useAuth from '../auth/useAuth.js'
 import { createSocket } from '../socket.js';
 import { clean } from '../profanityFilter.js';
 

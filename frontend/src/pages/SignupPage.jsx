@@ -3,7 +3,7 @@ import { Formik, Form, Field } from 'formik';
 import * as yup from 'yup';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../auth/AuthProvider.jsx';
+import useAuth from '../auth/useAuth.js'
 
 export default function SignupPage() {
   const { t } = useTranslation();
