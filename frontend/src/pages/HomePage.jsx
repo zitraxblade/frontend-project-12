@@ -322,22 +322,14 @@ export default function HomePage() {
                   {c.name}
                 </Button>
 
-                {/* Скрытый лейбл + aria-label/labelledby для Playwright */}
-                <span
-                  id={`channel-management-label-${c.id}`}
-                  className="visually-hidden"
-                >
-                  Управление каналом
-                </span>
-
+                {/* ВАЖНО: тест кликает по text="Управление каналом", поэтому текст должен быть НА КНОПКЕ */}
                 <Dropdown.Toggle
-                  split
                   variant={isActive ? 'secondary' : 'light'}
                   id={`channel-control-${c.id}`}
-                  aria-label="Управление каналом"
-                  aria-labelledby={`channel-management-label-${c.id}`}
-                  title="Управление каналом"
-                />
+                  className="rounded-0"
+                >
+                  Управление каналом
+                </Dropdown.Toggle>
 
                 <Dropdown.Menu renderOnMount>
                   <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
