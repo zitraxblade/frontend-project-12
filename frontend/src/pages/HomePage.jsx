@@ -323,13 +323,20 @@ export default function HomePage() {
                 </Button>
 
                 {/* ВАЖНО: фикс для Playwright — строгое aria-label */}
-                <Dropdown.Toggle
-                  split
-                  variant={isActive ? 'secondary' : 'light'}
-                  id={`channel-control-${c.id}`}
-                  aria-label="Управление каналом"
-                />
+              <span
+  id={`channel-management-label-${c.id}`}
+  className="visually-hidden"
+>
+  Управление каналом
+</span>
 
+<Dropdown.Toggle
+  split
+  variant={isActive ? 'secondary' : 'light'}
+  id={`channel-control-${c.id}`}
+  aria-labelledby={`channel-management-label-${c.id}`}
+  title="Управление каналом"
+/>
                 {/* ВАЖНО: фикс для Playwright — строгие тексты пунктов */}
                 <Dropdown.Menu renderOnMount>
                   <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
