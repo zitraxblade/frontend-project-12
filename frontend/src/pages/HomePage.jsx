@@ -322,22 +322,23 @@ export default function HomePage() {
                   {c.name}
                 </Button>
 
-                {/* ВАЖНО: фикс для Playwright — строгое aria-label */}
-              <span
-  id={`channel-management-label-${c.id}`}
-  className="visually-hidden"
->
-  Управление каналом
-</span>
+                {/* Скрытый лейбл + aria-label/labelledby для Playwright */}
+                <span
+                  id={`channel-management-label-${c.id}`}
+                  className="visually-hidden"
+                >
+                  Управление каналом
+                </span>
 
-<Dropdown.Toggle
-  split
-  variant={isActive ? 'secondary' : 'light'}
-  id={`channel-control-${c.id}`}
-  aria-labelledby={`channel-management-label-${c.id}`}
-  title="Управление каналом"
-/>
-                {/* ВАЖНО: фикс для Playwright — строгие тексты пунктов */}
+                <Dropdown.Toggle
+                  split
+                  variant={isActive ? 'secondary' : 'light'}
+                  id={`channel-control-${c.id}`}
+                  aria-label="Управление каналом"
+                  aria-labelledby={`channel-management-label-${c.id}`}
+                  title="Управление каналом"
+                />
+
                 <Dropdown.Menu renderOnMount>
                   <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
                     Удалить

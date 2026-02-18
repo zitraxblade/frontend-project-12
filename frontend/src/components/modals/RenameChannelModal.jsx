@@ -71,13 +71,14 @@ export default function RenameChannelModal({
                 <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
 
                 <Form.Control
-                  ref={inputRef}
-                  name="name"
-                  value={values.name}
-                  onChange={handleChange}
-                  isInvalid={touched.name && !!errors.name}
-                  disabled={submitting}
-                />
+  ref={inputRef}
+  name="name"
+  value={values.name}
+  onChange={handleChange}
+  isInvalid={touched.name && !!errors.name}
+  disabled={submitting}
+  aria-label={t('modals.channelNameLabel')}
+/>
 
                 <Form.Control.Feedback type="invalid">
                   {errors.name}
