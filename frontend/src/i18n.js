@@ -30,7 +30,7 @@ const resources = {
         loginTitle: 'Вход',
         signupTitle: 'Регистрация',
 
-        // тесты часто ищут именно это
+        // 
         yourNick: 'Ваш ник',
 
         username: 'Имя пользователя',
