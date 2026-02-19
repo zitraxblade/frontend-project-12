@@ -38,7 +38,7 @@ export default function RenameChannelModal({
       .min(3, t('validation.usernameLen'))
       .max(20, t('validation.usernameLen'))
       .required(t('validation.required'))
-      .test('unique', t('validation.mustBeUnique'), value => {
+      .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = String(value ?? '').trim().toLowerCase()
         const init = String(initialName ?? '').trim().toLowerCase()
         if (v === init) return true
@@ -60,7 +60,7 @@ export default function RenameChannelModal({
         enableReinitialize
         initialValues={{ name: initialName ?? '' }}
         validationSchema={schema}
-        onSubmit={values => onSubmit(String(values.name ?? '').trim())}
+        onSubmit={(values) => onSubmit(String(values.name ?? '').trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,

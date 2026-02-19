@@ -1,4 +1,3 @@
-// frontend/src/pages/LoginPage.jsx
 import axios from 'axios'
 import { Formik, Form, Field } from 'formik'
 import { Navigate, useNavigate, Link } from 'react-router-dom'

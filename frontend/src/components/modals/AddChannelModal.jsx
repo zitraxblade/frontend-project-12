@@ -26,7 +26,7 @@ export default function AddChannelModal({
       .min(3, t('validation.usernameLen'))
       .max(20, t('validation.usernameLen'))
       .required(t('validation.required'))
-      .test('unique', t('validation.mustBeUnique'), value => {
+      .test('unique', t('validation.mustBeUnique'), (value) => {
         const v = (value ?? '').trim().toLowerCase()
         return !existingNames.includes(v)
       }),
@@ -41,7 +41,7 @@ export default function AddChannelModal({
       <Formik
         initialValues={{ name: '' }}
         validationSchema={schema}
-        onSubmit={values => onSubmit(values.name.trim())}
+        onSubmit={(values) => onSubmit(values.name.trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
