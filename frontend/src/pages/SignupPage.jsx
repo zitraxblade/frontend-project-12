@@ -1,17 +1,17 @@
-import axios from 'axios';
-import { Formik, Form, Field } from 'formik';
-import * as yup from 'yup';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import axios from 'axios'
+import { Formik, Form, Field } from 'formik'
+import * as yup from 'yup'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import useAuth from '../auth/useAuth.js'
 
 export default function SignupPage() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const auth = useAuth();
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const auth = useAuth()
 
   if (auth.isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />
   }
 
   const schema = yup.object({
@@ -29,7 +29,7 @@ export default function SignupPage() {
       .string()
       .oneOf([yup.ref('password')], t('validation.passwordsMustMatch'))
       .required(t('validation.required')),
-  });
+  })
 
   return (
     <div style={{ padding: 24, maxWidth: 360 }}>
@@ -40,24 +40,24 @@ export default function SignupPage() {
         validationSchema={schema}
         validateOnBlur
         onSubmit={async (values, { setSubmitting, setStatus }) => {
-          setStatus(null);
+          setStatus(null)
           try {
             const payload = {
               username: values.username.trim(),
               password: values.password,
-            };
+            }
 
-            const res = await axios.post('/api/v1/signup', payload);
-            auth.logIn(res.data);
-            navigate('/', { replace: true });
+            const res = await axios.post('/api/v1/signup', payload)
+            auth.logIn(res.data)
+            navigate('/', { replace: true })
           } catch (e) {
             if (e?.response?.status === 409) {
-              setStatus(t('auth.userExists'));
+              setStatus(t('auth.userExists'))
             } else {
-              setStatus(t('auth.signupFailed'));
+              setStatus(t('auth.signupFailed'))
             }
           } finally {
-            setSubmitting(false);
+            setSubmitting(false)
           }
         }}
       >
@@ -110,11 +110,13 @@ export default function SignupPage() {
             </button>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
-              {t('auth.haveAccount')} <Link to="/login">{t('auth.loginLink')}</Link>
+              {t('auth.haveAccount')}
+              {' '}
+              <Link to="/login">{t('auth.loginLink')}</Link>
             </div>
           </Form>
         )}
       </Formik>
     </div>
-  );
+  )
 }

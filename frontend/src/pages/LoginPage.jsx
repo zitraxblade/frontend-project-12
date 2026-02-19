@@ -64,7 +64,8 @@ export default function LoginPage() {
             </div>
 
             <div style={{ marginTop: 12, fontSize: 12 }}>
-              {t('auth.noAccount')}{' '}
+              {t('auth.noAccount')}
+              {' '}
               <Link to="/signup">{t('auth.registerLink')}</Link>
             </div>
           </Form>

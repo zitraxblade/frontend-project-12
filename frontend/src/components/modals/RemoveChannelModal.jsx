@@ -1,5 +1,5 @@
-import { Modal, Button } from 'react-bootstrap';
-import { useTranslation } from 'react-i18next';
+import { Modal, Button } from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
 
 export default function RemoveChannelModal({
   show,
@@ -9,11 +9,11 @@ export default function RemoveChannelModal({
   submitting,
   submitError,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   const safeHide = () => {
-    if (!submitting) onHide();
-  };
+    if (!submitting) onHide()
+  }
 
   return (
     <Modal show={show} onHide={safeHide} centered>
@@ -36,5 +36,5 @@ export default function RemoveChannelModal({
         </Button>
       </Modal.Footer>
     </Modal>
-  );
+  )
 }

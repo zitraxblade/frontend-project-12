@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { useTranslation } from 'react-i18next';
-import { Formik } from 'formik';
-import * as yup from 'yup';
+import { useEffect, useRef } from 'react'
+import { Modal, Button, Form } from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
+import { Formik } from 'formik'
+import * as yup from 'yup'
 
 export default function AddChannelModal({
   show,
@@ -12,12 +12,12 @@ export default function AddChannelModal({
   submitting,
   submitError,
 }) {
-  const { t } = useTranslation();
-  const inputRef = useRef(null);
+  const { t } = useTranslation()
+  const inputRef = useRef(null)
 
   useEffect(() => {
-    if (show) setTimeout(() => inputRef.current?.focus(), 0);
-  }, [show]);
+    if (show) setTimeout(() => inputRef.current?.focus(), 0)
+  }, [show])
 
   const schema = yup.object({
     name: yup
@@ -26,11 +26,11 @@ export default function AddChannelModal({
       .min(3, t('validation.usernameLen'))
       .max(20, t('validation.usernameLen'))
       .required(t('validation.required'))
-      .test('unique', t('validation.mustBeUnique'), (value) => {
-        const v = (value ?? '').trim().toLowerCase();
-        return !existingNames.includes(v);
+      .test('unique', t('validation.mustBeUnique'), value => {
+        const v = (value ?? '').trim().toLowerCase()
+        return !existingNames.includes(v)
       }),
-  });
+  })
 
   return (
     <Modal show={show} onHide={() => !submitting && onHide()} centered>
@@ -41,7 +41,7 @@ export default function AddChannelModal({
       <Formik
         initialValues={{ name: '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(values.name.trim())}
+        onSubmit={values => onSubmit(values.name.trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
@@ -89,5 +89,5 @@ export default function AddChannelModal({
         )}
       </Formik>
     </Modal>
-  );
+  )
 }

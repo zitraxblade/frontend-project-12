@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { useTranslation } from 'react-i18next';
-import { Formik } from 'formik';
-import * as yup from 'yup';
+import { useEffect, useMemo, useRef } from 'react'
+import { Modal, Button, Form } from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
+import { Formik } from 'formik'
+import * as yup from 'yup'
 
 export default function RenameChannelModal({
   show,
@@ -13,42 +13,42 @@ export default function RenameChannelModal({
   submitting,
   submitError,
 }) {
-  const { t } = useTranslation();
-  const inputRef = useRef(null);
+  const { t } = useTranslation()
+  const inputRef = useRef(null)
 
   useEffect(() => {
-    if (!show) return;
+    if (!show) return
     setTimeout(() => {
-      const el = inputRef.current;
-      if (!el) return;
-      el.focus();
-      el.select();
-    }, 0);
-  }, [show]);
+      const el = inputRef.current
+      if (!el) return
+      el.focus()
+      el.select()
+    }, 0)
+  }, [show])
 
   const normalizedExisting = useMemo(
-    () => (existingNames ?? []).map((n) => String(n).trim().toLowerCase()),
+    () => (existingNames ?? []).map(n => String(n).trim().toLowerCase()),
     [existingNames],
-  );
+  )
 
   const schema = yup.object({
     name: yup
       .string()
-      .transform((v) => (v ?? '').trim())
+      .transform(v => (v ?? '').trim())
       .min(3, t('validation.usernameLen'))
       .max(20, t('validation.usernameLen'))
       .required(t('validation.required'))
-      .test('unique', t('validation.mustBeUnique'), (value) => {
-        const v = String(value ?? '').trim().toLowerCase();
-        const init = String(initialName ?? '').trim().toLowerCase();
-        if (v === init) return true;
-        return !normalizedExisting.includes(v);
+      .test('unique', t('validation.mustBeUnique'), value => {
+        const v = String(value ?? '').trim().toLowerCase()
+        const init = String(initialName ?? '').trim().toLowerCase()
+        if (v === init) return true
+        return !normalizedExisting.includes(v)
       }),
-  });
+  })
 
   const safeHide = () => {
-    if (!submitting) onHide();
-  };
+    if (!submitting) onHide()
+  }
 
   return (
     <Modal show={show} onHide={safeHide} centered>
@@ -60,7 +60,7 @@ export default function RenameChannelModal({
         enableReinitialize
         initialValues={{ name: initialName ?? '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(String(values.name ?? '').trim())}
+        onSubmit={values => onSubmit(String(values.name ?? '').trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
@@ -71,14 +71,14 @@ export default function RenameChannelModal({
                 <Form.Label>{t('modals.channelNameLabel')}</Form.Label>
 
                 <Form.Control
-  ref={inputRef}
-  name="name"
-  value={values.name}
-  onChange={handleChange}
-  isInvalid={touched.name && !!errors.name}
-  disabled={submitting}
-  aria-label={t('modals.channelNameLabel')}
-/>
+                  ref={inputRef}
+                  name="name"
+                  value={values.name}
+                  onChange={handleChange}
+                  isInvalid={touched.name && !!errors.name}
+                  disabled={submitting}
+                  aria-label={t('modals.channelNameLabel')}
+                />
 
                 <Form.Control.Feedback type="invalid">
                   {errors.name}
@@ -101,5 +101,5 @@ export default function RenameChannelModal({
         )}
       </Formik>
     </Modal>
-  );
+  )
 }

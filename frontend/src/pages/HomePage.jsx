@@ -1,16 +1,16 @@
-import { toast } from 'react-toastify';
-import { Navigate } from 'react-router-dom';
+import { toast } from 'react-toastify'
+import { Navigate } from 'react-router-dom'
 import {
   useEffect, useMemo, useRef, useState,
-} from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { Button, Dropdown, ButtonGroup } from 'react-bootstrap';
+} from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
+import { Button, Dropdown, ButtonGroup } from 'react-bootstrap'
 
-import api from '../api.js';
+import api from '../api.js'
 import useAuth from '../auth/useAuth.js'
-import { createSocket } from '../socket.js';
-import { clean } from '../profanityFilter.js';
+import { createSocket } from '../socket.js'
+import { clean } from '../profanityFilter.js'
 
 import {
   setChannels,
@@ -18,261 +18,261 @@ import {
   addChannel,
   removeChannel,
   renameChannel,
-} from '../slices/channelsSlice.js';
+} from '../slices/channelsSlice.js'
 
 import {
   setMessages,
   addMessage,
   removeMessagesByChannel,
-} from '../slices/messagesSlice.js';
+} from '../slices/messagesSlice.js'
 
-import AddChannelModal from '../components/modals/AddChannelModal.jsx';
-import RemoveChannelModal from '../components/modals/RemoveChannelModal.jsx';
-import RenameChannelModal from '../components/modals/RenameChannelModal.jsx';
+import AddChannelModal from '../components/modals/AddChannelModal.jsx'
+import RemoveChannelModal from '../components/modals/RemoveChannelModal.jsx'
+import RenameChannelModal from '../components/modals/RenameChannelModal.jsx'
 
-const DEFAULT_CHANNEL_ID = '1';
+const DEFAULT_CHANNEL_ID = '1'
 
 export default function HomePage() {
-  const { t } = useTranslation();
-  const auth = useAuth();
-  const dispatch = useDispatch();
+  const { t } = useTranslation()
+  const auth = useAuth()
+  const dispatch = useDispatch()
 
   // socket стабилен между рендерами
-  const socketRef = useRef(null);
-  if (!socketRef.current) socketRef.current = createSocket();
-  const socket = socketRef.current;
+  const socketRef = useRef(null)
+  if (!socketRef.current) socketRef.current = createSocket()
+  const socket = socketRef.current
 
-  const channels = useSelector((s) => s.channels.items);
-  const currentChannelId = useSelector((s) => s.channels.currentChannelId);
-  const messages = useSelector((s) => s.messages.items);
+  const channels = useSelector(s => s.channels.items)
+  const currentChannelId = useSelector(s => s.channels.currentChannelId)
+  const messages = useSelector(s => s.messages.items)
 
-  const username = auth.username ?? 'unknown';
+  const username = auth.username ?? 'unknown'
 
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(null);
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
-  const [text, setText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState(null);
+  const [text, setText] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState(null)
 
-  const [modal, setModal] = useState({ type: null, channel: null });
-  const [modalSubmitting, setModalSubmitting] = useState(false);
-  const [modalError, setModalError] = useState(null);
+  const [modal, setModal] = useState({ type: null, channel: null })
+  const [modalSubmitting, setModalSubmitting] = useState(false)
+  const [modalError, setModalError] = useState(null)
 
   const existingChannelNames = useMemo(
-    () => channels.map((c) => String(c.name ?? '').trim().toLowerCase()),
+    () => channels.map(c => String(c.name ?? '').trim().toLowerCase()),
     [channels],
-  );
+  )
 
   const currentChannel = useMemo(
-    () => channels.find((c) => String(c.id) === String(currentChannelId)),
+    () => channels.find(c => String(c.id) === String(currentChannelId)),
     [channels, currentChannelId],
-  );
+  )
 
   const visibleMessages = useMemo(
-    () => messages.filter((m) => String(m.channelId) === String(currentChannelId)),
+    () => messages.filter(m => String(m.channelId) === String(currentChannelId)),
     [messages, currentChannelId],
-  );
+  )
 
   // INIT
   useEffect(() => {
     if (!auth.token) {
-      setLoading(false);
-      return;
+      setLoading(false)
+      return
     }
 
     const load = async () => {
-      setLoadError(null);
-      setLoading(true);
+      setLoadError(null)
+      setLoading(true)
 
       try {
         const [channelsRes, messagesRes] = await Promise.all([
           api.get('/channels'),
           api.get('/messages'),
-        ]);
+        ])
 
-        const ch = channelsRes.data ?? [];
-        const msgs = messagesRes.data ?? [];
-        const curId = ch.length > 0 ? String(ch[0].id) : DEFAULT_CHANNEL_ID;
+        const ch = channelsRes.data ?? []
+        const msgs = messagesRes.data ?? []
+        const curId = ch.length > 0 ? String(ch[0].id) : DEFAULT_CHANNEL_ID
 
-        dispatch(setChannels({ channels: ch, currentChannelId: curId }));
-        dispatch(setMessages(msgs));
+        dispatch(setChannels({ channels: ch, currentChannelId: curId }))
+        dispatch(setMessages(msgs))
       } catch {
-        setLoadError(t('chat.loadFailed'));
-        toast.error(t('toasts.loadFailed'));
+        setLoadError(t('chat.loadFailed'))
+        toast.error(t('toasts.loadFailed'))
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    load();
-  }, [auth.token, dispatch, t]);
+    load()
+  }, [auth.token, dispatch, t])
 
   // SOCKET
   useEffect(() => {
-    if (!auth.token) return;
+    if (!auth.token) return
 
-    socket.auth = { token: auth.token };
-    socket.connect();
+    socket.auth = { token: auth.token }
+    socket.connect()
 
-    const onNewMessage = (payload) => dispatch(addMessage(payload));
-    const onNewChannel = (payload) => dispatch(addChannel(payload));
+    const onNewMessage = payload => dispatch(addMessage(payload))
+    const onNewChannel = payload => dispatch(addChannel(payload))
 
-    const onRemoveChannel = (payload) => {
-      const removedId = String(payload.id);
+    const onRemoveChannel = payload => {
+      const removedId = String(payload.id)
 
-      dispatch(removeChannel(removedId));
-      dispatch(removeMessagesByChannel(removedId));
+      dispatch(removeChannel(removedId))
+      dispatch(removeMessagesByChannel(removedId))
 
       if (String(currentChannelId) === removedId) {
-        dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID));
+        dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID))
       }
-    };
+    }
 
-    const onRenameChannel = (payload) => dispatch(renameChannel(payload));
+    const onRenameChannel = payload => dispatch(renameChannel(payload))
 
-    socket.on('newMessage', onNewMessage);
-    socket.on('newChannel', onNewChannel);
-    socket.on('removeChannel', onRemoveChannel);
-    socket.on('renameChannel', onRenameChannel);
+    socket.on('newMessage', onNewMessage)
+    socket.on('newChannel', onNewChannel)
+    socket.on('removeChannel', onRemoveChannel)
+    socket.on('renameChannel', onRenameChannel)
 
     return () => {
-      socket.off('newMessage', onNewMessage);
-      socket.off('newChannel', onNewChannel);
-      socket.off('removeChannel', onRemoveChannel);
-      socket.off('renameChannel', onRenameChannel);
-      socket.disconnect();
-    };
-  }, [auth.token, socket, dispatch, currentChannelId]);
+      socket.off('newMessage', onNewMessage)
+      socket.off('newChannel', onNewChannel)
+      socket.off('removeChannel', onRemoveChannel)
+      socket.off('renameChannel', onRenameChannel)
+      socket.disconnect()
+    }
+  }, [auth.token, socket, dispatch, currentChannelId])
 
   const openAdd = () => {
-    setModalError(null);
-    setModalSubmitting(false);
-    setModal({ type: 'add', channel: null });
-  };
+    setModalError(null)
+    setModalSubmitting(false)
+    setModal({ type: 'add', channel: null })
+  }
 
-  const openRemove = (channel) => {
-    setModalError(null);
-    setModalSubmitting(false);
-    setModal({ type: 'remove', channel });
-  };
+  const openRemove = channel => {
+    setModalError(null)
+    setModalSubmitting(false)
+    setModal({ type: 'remove', channel })
+  }
 
-  const openRename = (channel) => {
-    setModalError(null);
-    setModalSubmitting(false);
-    setModal({ type: 'rename', channel });
-  };
+  const openRename = channel => {
+    setModalError(null)
+    setModalSubmitting(false)
+    setModal({ type: 'rename', channel })
+  }
 
-  const closeModal = () => setModal({ type: null, channel: null });
+  const closeModal = () => setModal({ type: null, channel: null })
 
   // CREATE CHANNEL
-  const submitAdd = async (name) => {
-    setModalSubmitting(true);
-    setModalError(null);
+  const submitAdd = async name => {
+    setModalSubmitting(true)
+    setModalError(null)
 
     try {
-      const safeName = clean(name);
-      const res = await api.post('/channels', { name: safeName });
+      const safeName = clean(name)
+      const res = await api.post('/channels', { name: safeName })
 
-      dispatch(addChannel(res.data));
-      dispatch(setCurrentChannelId(res.data.id));
+      dispatch(addChannel(res.data))
+      dispatch(setCurrentChannelId(res.data.id))
 
-      toast.success(t('toasts.channelCreated'));
-      closeModal();
+      toast.success(t('toasts.channelCreated'))
+      closeModal()
     } catch {
-      setModalError(t('modals.createFailed'));
-      toast.error(t('modals.createFailed'));
+      setModalError(t('modals.createFailed'))
+      toast.error(t('modals.createFailed'))
     } finally {
-      setModalSubmitting(false);
+      setModalSubmitting(false)
     }
-  };
+  }
 
   // RENAME CHANNEL
-  const submitRename = async (name) => {
-    const ch = modal.channel;
-    if (!ch) return;
+  const submitRename = async name => {
+    const ch = modal.channel
+    if (!ch) return
 
-    setModalSubmitting(true);
-    setModalError(null);
+    setModalSubmitting(true)
+    setModalError(null)
 
-    const safeName = clean(name);
+    const safeName = clean(name)
 
     try {
-      await api.patch(`/channels/${ch.id}`, { name: safeName });
+      await api.patch(`/channels/${ch.id}`, { name: safeName })
 
-      dispatch(renameChannel({ id: ch.id, name: safeName }));
+      dispatch(renameChannel({ id: ch.id, name: safeName }))
 
-      toast.success(t('toasts.channelRenamed'));
-      closeModal();
+      toast.success(t('toasts.channelRenamed'))
+      closeModal()
     } catch {
-      setModalError(t('modals.renameFailed'));
-      toast.error(t('modals.renameFailed'));
+      setModalError(t('modals.renameFailed'))
+      toast.error(t('modals.renameFailed'))
     } finally {
-      setModalSubmitting(false);
+      setModalSubmitting(false)
     }
-  };
+  }
 
   // REMOVE CHANNEL
   const submitRemove = async () => {
-    const ch = modal.channel;
-    if (!ch) return;
+    const ch = modal.channel
+    if (!ch) return
 
-    setModalSubmitting(true);
-    setModalError(null);
+    setModalSubmitting(true)
+    setModalError(null)
 
     try {
-      await api.delete(`/channels/${ch.id}`);
+      await api.delete(`/channels/${ch.id}`)
 
-      const removedId = String(ch.id);
-      dispatch(removeChannel(removedId));
-      dispatch(removeMessagesByChannel(removedId));
+      const removedId = String(ch.id)
+      dispatch(removeChannel(removedId))
+      dispatch(removeMessagesByChannel(removedId))
       if (String(currentChannelId) === removedId) {
-        dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID));
+        dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID))
       }
 
-      toast.success(t('toasts.channelRemoved'));
-      closeModal();
+      toast.success(t('toasts.channelRemoved'))
+      closeModal()
     } catch {
-      setModalError(t('modals.removeFailed'));
-      toast.error(t('modals.removeFailed'));
+      setModalError(t('modals.removeFailed'))
+      toast.error(t('modals.removeFailed'))
     } finally {
-      setModalSubmitting(false);
+      setModalSubmitting(false)
     }
-  };
+  }
 
   // SEND MESSAGE
-  const onSubmitMessage = async (e) => {
-    e.preventDefault();
+  const onSubmitMessage = async e => {
+    e.preventDefault()
 
-    const raw = text.trim();
-    if (!raw || !currentChannelId) return;
+    const raw = text.trim()
+    if (!raw || !currentChannelId) return
 
-    const body = clean(raw);
+    const body = clean(raw)
 
-    setSendError(null);
-    setSending(true);
+    setSendError(null)
+    setSending(true)
 
     try {
       const res = await api.post('/messages', {
         body,
         channelId: String(currentChannelId),
         username,
-      });
+      })
 
-      if (res?.data?.id != null) dispatch(addMessage(res.data));
-      setText('');
+      if (res?.data?.id != null) dispatch(addMessage(res.data))
+      setText('')
     } catch {
-      setSendError(t('chat.sendFailed'));
-      toast.error(t('toasts.networkError'));
+      setSendError(t('chat.sendFailed'))
+      toast.error(t('toasts.networkError'))
     } finally {
-      setSending(false);
+      setSending(false)
     }
-  };
+  }
 
-  if (!auth.isAuthenticated) return <Navigate to="/login" replace />;
+  if (!auth.isAuthenticated) return <Navigate to="/login" replace />
 
-  if (loading) return <div className="p-4">{t('common.loading')}</div>;
-  if (loadError) return <div className="p-4">{loadError}</div>;
+  if (loading) return <div className="p-4">{t('common.loading')}</div>
+  if (loadError) return <div className="p-4">{loadError}</div>
 
   return (
     <div className="d-flex flex-grow-1" style={{ height: '100vh', minHeight: 0 }}>
@@ -292,8 +292,8 @@ export default function HomePage() {
         </div>
 
         <div className="d-flex flex-column">
-          {channels.map((c) => {
-            const isActive = String(c.id) === String(currentChannelId);
+          {channels.map(c => {
+            const isActive = String(c.id) === String(currentChannelId)
 
             if (!c.removable) {
               return (
@@ -307,7 +307,7 @@ export default function HomePage() {
                   <span className="me-1">#</span>
                   {c.name}
                 </Button>
-              );
+              )
             }
 
             return (
@@ -340,7 +340,7 @@ export default function HomePage() {
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
-            );
+            )
           })}
         </div>
       </div>
@@ -357,7 +357,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-          {visibleMessages.map((m) => (
+          {visibleMessages.map(m => (
             <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
               <b>{m.username}</b>
               {': '}
@@ -373,7 +373,7 @@ export default function HomePage() {
             placeholder={t('chat.messagePlaceholder')}
             className="form-control"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={e => setText(e.target.value)}
             disabled={sending}
           />
           <Button type="submit" disabled={sending || text.trim().length === 0}>
@@ -413,5 +413,5 @@ export default function HomePage() {
         submitError={modalError}
       />
     </div>
-  );
+  )
 }

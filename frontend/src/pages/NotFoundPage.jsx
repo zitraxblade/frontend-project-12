@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 export default function NotFoundPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   return (
     <div style={{ padding: 24 }}>
@@ -10,5 +10,5 @@ export default function NotFoundPage() {
       <p>{t('notFound.title')}</p>
       <Link to="/">{t('notFound.toHome')}</Link>
     </div>
-  );
+  )
 }

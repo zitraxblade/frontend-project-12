@@ -1,4 +1,4 @@
-import { io } from 'socket.io-client';
+import { io } from 'socket.io-client'
 
 export const createSocket = () => io('/', {
   path: '/socket.io',
@@ -7,4 +7,4 @@ export const createSocket = () => io('/', {
   // чтобы в консоли не было websocket-ошибок под vite/прокси
   transports: ['polling'],
   upgrade: false,
-});
+})
