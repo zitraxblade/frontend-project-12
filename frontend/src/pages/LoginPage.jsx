@@ -25,9 +25,11 @@ export default function LoginPage() {
             const res = await axios.post('/api/v1/login', values)
             auth.logIn(res.data)
             navigate('/', { replace: true })
-          } catch {
+          }
+          catch {
             setStatus(t('auth.wrongCreds'))
-          } finally {
+          }
+          finally {
             setSubmitting(false)
           }
         }}

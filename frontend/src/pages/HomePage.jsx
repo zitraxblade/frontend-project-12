@@ -95,11 +95,11 @@ export default function HomePage() {
 
         dispatch(setChannels({ channels: ch, currentChannelId: curId }))
         dispatch(setMessages(msgs))
-      } 
+      }
       catch {
         setLoadError(t('chat.loadFailed'))
         toast.error(t('toasts.loadFailed'))
-      } 
+      }
       finally {
         setLoading(false)
       }
@@ -177,11 +177,11 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelCreated'))
       closeModal()
-    } 
+    }
     catch {
       setModalError(t('modals.createFailed'))
       toast.error(t('modals.createFailed'))
-    } 
+    }
     finally {
       setModalSubmitting(false)
     }
@@ -203,11 +203,11 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelRenamed'))
       closeModal()
-    } 
+    }
     catch {
       setModalError(t('modals.renameFailed'))
       toast.error(t('modals.renameFailed'))
-    } 
+    }
     finally {
       setModalSubmitting(false)
     }
@@ -232,11 +232,11 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelRemoved'))
       closeModal()
-    } 
+    }
     catch {
       setModalError(t('modals.removeFailed'))
       toast.error(t('modals.removeFailed'))
-    } 
+    }
     finally {
       setModalSubmitting(false)
     }
@@ -262,11 +262,11 @@ export default function HomePage() {
 
       if (res?.data?.id != null) dispatch(addMessage(res.data))
       setText('')
-    } 
+    }
     catch {
       setSendError(t('chat.sendFailed'))
       toast.error(t('toasts.networkError'))
-    } 
+    }
     finally {
       setSending(false)
     }
