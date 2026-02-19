@@ -14,7 +14,7 @@ const channelsSlice = createSlice({
       state.items = channels
       if (currentChannelId != null) {
         state.currentChannelId = String(currentChannelId)
-      } 
+      }
       else if (channels[0]?.id != null) {
         state.currentChannelId = String(channels[0].id)
       }

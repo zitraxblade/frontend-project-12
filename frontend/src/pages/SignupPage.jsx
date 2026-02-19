@@ -50,15 +50,15 @@ export default function SignupPage() {
             const res = await axios.post('/api/v1/signup', payload)
             auth.logIn(res.data)
             navigate('/', { replace: true })
-          } 
+          }
           catch (e) {
             if (e?.response?.status === 409) {
               setStatus(t('auth.userExists'))
-            } 
+            }
             else {
               setStatus(t('auth.signupFailed'))
             }
-          } 
+          }
           finally {
             setSubmitting(false)
           }
