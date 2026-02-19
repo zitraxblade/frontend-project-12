@@ -41,7 +41,7 @@ export default function AddChannelModal({
       <Formik
         initialValues={{ name: '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(values.name.trim())}
+        onSubmit={values => onSubmit(values.name.trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
