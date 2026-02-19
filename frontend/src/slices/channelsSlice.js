@@ -31,14 +31,14 @@ const channelsSlice = createSlice({
       if (!ch?.id) return
 
       const id = String(ch.id)
-      const exists = state.items.some(c => String(c.id) === id)
+      const exists = state.items.some((c) => String(c.id) === id)
       if (!exists) state.items.push(ch)
     },
 
     // payload: id
     removeChannel(state, action) {
       const id = String(action.payload)
-      state.items = state.items.filter(c => String(c.id) !== id)
+      state.items = state.items.filter((c) => String(c.id) !== id)
 
       if (String(state.currentChannelId) === id) {
         const fallback = state.items[0]?.id ?? '1'
@@ -51,7 +51,7 @@ const channelsSlice = createSlice({
       const { id, name } = action.payload || {}
       if (id == null) return
 
-      const target = state.items.find(c => String(c.id) === String(id))
+      const target = state.items.find((c) => String(c.id) === String(id))
       if (target && name != null) {
         target.name = name
       }

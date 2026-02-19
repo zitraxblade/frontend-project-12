@@ -6,7 +6,7 @@ const api = axios.create({
   baseURL: '/api/v1',
 })
 
-api.interceptors.request.use(config => {
+api.interceptors.request.use((config) => {
   const token = getToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`

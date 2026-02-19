@@ -19,5 +19,13 @@
   },
   "dependencies": {
     "@hexlet/chat-server": "^2.0.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.1",
+    "@stylistic/eslint-plugin": "^1.8.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "globals": "^17.3.0"
   }
 }
