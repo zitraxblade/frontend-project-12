@@ -60,7 +60,7 @@ export default function RenameChannelModal({
         enableReinitialize
         initialValues={{ name: initialName ?? '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(String(values.name ?? '').trim())}
+        onSubmit={values => onSubmit(String(values.name ?? '').trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,

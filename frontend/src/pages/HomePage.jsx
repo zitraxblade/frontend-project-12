@@ -262,10 +262,12 @@ export default function HomePage() {
 
       if (res?.data?.id != null) dispatch(addMessage(res.data))
       setText('')
-    } catch {
+    } 
+    catch {
       setSendError(t('chat.sendFailed'))
       toast.error(t('toasts.networkError'))
-    } finally {
+    } 
+    finally {
       setSending(false)
     }
   }
