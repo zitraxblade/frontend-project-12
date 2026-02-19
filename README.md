@@ -7,6 +7,10 @@ https://frontend-project-12-ujrc.onrender.com
 
 
 Install:
+
 Make install
+
 Make start
+
 Make build
+
