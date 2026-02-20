@@ -117,7 +117,7 @@ export default function HomePage() {
     const onNewMessage = payload => dispatch(addMessage(payload))
     const onNewChannel = payload => dispatch(addChannel(payload))
 
-    const onRemoveChannel = payload => {
+    const onRemoveChannel = (payload) => {
       const removedId = String(payload.id)
 
       dispatch(removeChannel(removedId))
@@ -164,7 +164,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null })
 
-  const submitAdd = async name => {
+  const submitAdd = async (name) => {
     setModalSubmitting(true)
     setModalError(null)
 
@@ -187,7 +187,7 @@ export default function HomePage() {
     }
   }
 
-  const submitRename = async name => {
+  const submitRename = async (name) => {
     const ch = modal.channel
     if (!ch) return
 
@@ -241,7 +241,7 @@ export default function HomePage() {
     }
   }
 
-  const onSubmitMessage = async e => {
+  const onSubmitMessage = async (e) => {
     e.preventDefault()
 
     const raw = text.trim()
@@ -292,7 +292,7 @@ export default function HomePage() {
         </div>
 
         <div className="d-flex flex-column">
-          {channels.map(c => {
+          {channels.map((c) => {
             const isActive = String(c.id) === String(currentChannelId)
 
             if (!c.removable) {
@@ -355,7 +355,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-          {visibleMessages.map(m => (
+          {visibleMessages.map((m) => (
             <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
               <b>{m.username}</b>
               {': '}
