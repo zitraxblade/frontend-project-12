@@ -15,6 +15,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     setStatus(null)
+
     try {
       const payload = {
         username: values.username.trim(),

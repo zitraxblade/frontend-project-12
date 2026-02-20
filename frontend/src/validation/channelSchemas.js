@@ -7,7 +7,7 @@ export const getAddChannelSchema = (t, existingNames) => yup.object({
     .min(3, t('validation.usernameLen'))
     .max(20, t('validation.usernameLen'))
     .required(t('validation.required'))
-    .test('unique', t('validation.mustBeUnique'), value => {
+    .test('unique', t('validation.mustBeUnique'), (value) => {
       const v = (value ?? '').trim().toLowerCase()
       return !(existingNames ?? []).includes(v)
     }),
@@ -20,7 +20,7 @@ export const getRenameChannelSchema = (t, initialName, normalizedExisting) => yu
     .min(3, t('validation.usernameLen'))
     .max(20, t('validation.usernameLen'))
     .required(t('validation.required'))
-    .test('unique', t('validation.mustBeUnique'), value => {
+    .test('unique', t('validation.mustBeUnique'), (value) => {
       const v = String(value ?? '').trim().toLowerCase()
       const init = String(initialName ?? '').trim().toLowerCase()
       if (v === init) return true
