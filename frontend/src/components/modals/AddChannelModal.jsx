@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { Formik } from 'formik'
-import { buildAddChannelSchema } from '../../validation/channelSchemas.js'
+
+import { getAddChannelSchema } from '../../validation/channelSchemas.js'
 
 export default function AddChannelModal({
   show,
@@ -19,14 +20,10 @@ export default function AddChannelModal({
     if (show) setTimeout(() => inputRef.current?.focus(), 0)
   }, [show])
 
-  const schema = buildAddChannelSchema(t, existingNames)
-
-  const safeHide = () => {
-    if (!submitting) onHide()
-  }
+  const schema = getAddChannelSchema(t, existingNames)
 
   return (
-    <Modal show={show} onHide={safeHide} centered>
+    <Modal show={show} onHide={() => !submitting && onHide()} centered>
       <Modal.Header closeButton={!submitting}>
         <Modal.Title>{t('modals.addChannelTitle')}</Modal.Title>
       </Modal.Header>
@@ -34,7 +31,7 @@ export default function AddChannelModal({
       <Formik
         initialValues={{ name: '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(values.name.trim())}
+        onSubmit={values => onSubmit(values.name.trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
@@ -71,7 +68,7 @@ export default function AddChannelModal({
             </Modal.Body>
 
             <Modal.Footer>
-              <Button variant="secondary" onClick={safeHide} disabled={submitting}>
+              <Button variant="secondary" onClick={onHide} disabled={submitting}>
                 {t('common.cancel')}
               </Button>
               <Button type="submit" variant="primary" disabled={submitting}>

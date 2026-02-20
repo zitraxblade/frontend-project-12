@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 
-export const buildSignupSchema = (t) => yup.object({
+const buildSignupSchema = t => yup.object({
   username: yup
     .string()
     .trim()
@@ -16,3 +16,5 @@ export const buildSignupSchema = (t) => yup.object({
     .oneOf([yup.ref('password')], t('validation.passwordsMustMatch'))
     .required(t('validation.required')),
 })
+
+export default buildSignupSchema

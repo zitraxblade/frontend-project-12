@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { Formik } from 'formik'
-import { buildRenameChannelSchema } from '../../validation/channelSchemas.js'
+
+import { getRenameChannelSchema } from '../../validation/channelSchemas.js'
 
 export default function RenameChannelModal({
   show,
@@ -26,7 +27,12 @@ export default function RenameChannelModal({
     }, 0)
   }, [show])
 
-  const schema = buildRenameChannelSchema(t, initialName, existingNames)
+  const normalizedExisting = useMemo(
+    () => (existingNames ?? []).map(n => String(n).trim().toLowerCase()),
+    [existingNames],
+  )
+
+  const schema = getRenameChannelSchema(t, initialName, normalizedExisting)
 
   const safeHide = () => {
     if (!submitting) onHide()
@@ -42,7 +48,7 @@ export default function RenameChannelModal({
         enableReinitialize
         initialValues={{ name: initialName ?? '' }}
         validationSchema={schema}
-        onSubmit={(values) => onSubmit(String(values.name ?? '').trim())}
+        onSubmit={values => onSubmit(String(values.name ?? '').trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
@@ -67,11 +73,7 @@ export default function RenameChannelModal({
                 </Form.Control.Feedback>
               </Form.Group>
 
-              {submitError && (
-                <div className="text-danger mt-2">
-                  {submitError}
-                </div>
-              )}
+              {submitError && <div className="text-danger mt-2">{submitError}</div>}
             </Modal.Body>
 
             <Modal.Footer>

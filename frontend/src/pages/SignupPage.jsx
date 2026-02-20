@@ -3,7 +3,8 @@ import { Formik, Form, Field } from 'formik'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import useAuth from '../auth/useAuth.js'
-import { buildSignupSchema } from '../validation/signupSchema.js'
+
+import buildSignupSchema from '../validation/signupSchema.js'
 
 export default function SignupPage() {
   const { t } = useTranslation()
