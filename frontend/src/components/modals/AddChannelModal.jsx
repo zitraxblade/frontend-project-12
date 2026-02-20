@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { Formik } from 'formik'
-import * as yup from 'yup'
+import { buildAddChannelSchema } from '../../validation/channelSchemas.js'
 
 export default function AddChannelModal({
   show,
@@ -19,21 +19,14 @@ export default function AddChannelModal({
     if (show) setTimeout(() => inputRef.current?.focus(), 0)
   }, [show])
 
-  const schema = yup.object({
-    name: yup
-      .string()
-      .trim()
-      .min(3, t('validation.usernameLen'))
-      .max(20, t('validation.usernameLen'))
-      .required(t('validation.required'))
-      .test('unique', t('validation.mustBeUnique'), (value) => {
-        const v = (value ?? '').trim().toLowerCase()
-        return !existingNames.includes(v)
-      }),
-  })
+  const schema = buildAddChannelSchema(t, existingNames)
+
+  const safeHide = () => {
+    if (!submitting) onHide()
+  }
 
   return (
-    <Modal show={show} onHide={() => !submitting && onHide()} centered>
+    <Modal show={show} onHide={safeHide} centered>
       <Modal.Header closeButton={!submitting}>
         <Modal.Title>{t('modals.addChannelTitle')}</Modal.Title>
       </Modal.Header>
@@ -41,7 +34,7 @@ export default function AddChannelModal({
       <Formik
         initialValues={{ name: '' }}
         validationSchema={schema}
-        onSubmit={values => onSubmit(values.name.trim())}
+        onSubmit={(values) => onSubmit(values.name.trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
@@ -78,7 +71,7 @@ export default function AddChannelModal({
             </Modal.Body>
 
             <Modal.Footer>
-              <Button variant="secondary" onClick={onHide} disabled={submitting}>
+              <Button variant="secondary" onClick={safeHide} disabled={submitting}>
                 {t('common.cancel')}
               </Button>
               <Button type="submit" variant="primary" disabled={submitting}>

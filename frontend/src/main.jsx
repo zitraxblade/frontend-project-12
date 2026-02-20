@@ -9,7 +9,7 @@ import { Provider } from 'react-redux'
 import App from './App.jsx'
 import './index.css'
 import AuthProvider from './auth/AuthProvider.jsx'
-import store from './store.js'
+import store from './store/store.js'
 
 import rollbar from './rollbar.js'
 

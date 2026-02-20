@@ -18,13 +18,13 @@ import {
   addChannel,
   removeChannel,
   renameChannel,
-} from '../slices/channelsSlice.js'
+} from '../store/slices/channelsSlice.js'
 
 import {
   setMessages,
   addMessage,
   removeMessagesByChannel,
-} from '../slices/messagesSlice.js'
+} from '../store/slices/messagesSlice.js'
 
 import AddChannelModal from '../components/modals/AddChannelModal.jsx'
 import RemoveChannelModal from '../components/modals/RemoveChannelModal.jsx'
@@ -41,9 +41,9 @@ export default function HomePage() {
   if (!socketRef.current) socketRef.current = createSocket()
   const socket = socketRef.current
 
-  const channels = useSelector(s => s.channels.items)
-  const currentChannelId = useSelector(s => s.channels.currentChannelId)
-  const messages = useSelector(s => s.messages.items)
+  const channels = useSelector((s) => s.channels.items)
+  const currentChannelId = useSelector((s) => s.channels.currentChannelId)
+  const messages = useSelector((s) => s.messages.items)
 
   const username = auth.username ?? 'unknown'
 
@@ -59,17 +59,17 @@ export default function HomePage() {
   const [modalError, setModalError] = useState(null)
 
   const existingChannelNames = useMemo(
-    () => channels.map(c => String(c.name ?? '').trim().toLowerCase()),
+    () => channels.map((c) => String(c.name ?? '').trim().toLowerCase()),
     [channels],
   )
 
   const currentChannel = useMemo(
-    () => channels.find(c => String(c.id) === String(currentChannelId)),
+    () => channels.find((c) => String(c.id) === String(currentChannelId)),
     [channels, currentChannelId],
   )
 
   const visibleMessages = useMemo(
-    () => messages.filter(m => String(m.channelId) === String(currentChannelId)),
+    () => messages.filter((m) => String(m.channelId) === String(currentChannelId)),
     [messages, currentChannelId],
   )
 
@@ -95,12 +95,10 @@ export default function HomePage() {
 
         dispatch(setChannels({ channels: ch, currentChannelId: curId }))
         dispatch(setMessages(msgs))
-      }
-      catch {
+      } catch {
         setLoadError(t('chat.loadFailed'))
         toast.error(t('toasts.loadFailed'))
-      }
-      finally {
+      } finally {
         setLoading(false)
       }
     }
@@ -114,8 +112,8 @@ export default function HomePage() {
     socket.auth = { token: auth.token }
     socket.connect()
 
-    const onNewMessage = payload => dispatch(addMessage(payload))
-    const onNewChannel = payload => dispatch(addChannel(payload))
+    const onNewMessage = (payload) => dispatch(addMessage(payload))
+    const onNewChannel = (payload) => dispatch(addChannel(payload))
 
     const onRemoveChannel = (payload) => {
       const removedId = String(payload.id)
@@ -128,7 +126,7 @@ export default function HomePage() {
       }
     }
 
-    const onRenameChannel = payload => dispatch(renameChannel(payload))
+    const onRenameChannel = (payload) => dispatch(renameChannel(payload))
 
     socket.on('newMessage', onNewMessage)
     socket.on('newChannel', onNewChannel)
@@ -177,12 +175,10 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelCreated'))
       closeModal()
-    }
-    catch {
+    } catch {
       setModalError(t('modals.createFailed'))
       toast.error(t('modals.createFailed'))
-    }
-    finally {
+    } finally {
       setModalSubmitting(false)
     }
   }
@@ -198,17 +194,13 @@ export default function HomePage() {
 
     try {
       await api.patch(`/channels/${ch.id}`, { name: safeName })
-
       dispatch(renameChannel({ id: ch.id, name: safeName }))
-
       toast.success(t('toasts.channelRenamed'))
       closeModal()
-    }
-    catch {
+    } catch {
       setModalError(t('modals.renameFailed'))
       toast.error(t('modals.renameFailed'))
-    }
-    finally {
+    } finally {
       setModalSubmitting(false)
     }
   }
@@ -226,18 +218,17 @@ export default function HomePage() {
       const removedId = String(ch.id)
       dispatch(removeChannel(removedId))
       dispatch(removeMessagesByChannel(removedId))
+
       if (String(currentChannelId) === removedId) {
         dispatch(setCurrentChannelId(DEFAULT_CHANNEL_ID))
       }
 
       toast.success(t('toasts.channelRemoved'))
       closeModal()
-    }
-    catch {
+    } catch {
       setModalError(t('modals.removeFailed'))
       toast.error(t('modals.removeFailed'))
-    }
-    finally {
+    } finally {
       setModalSubmitting(false)
     }
   }
@@ -262,18 +253,15 @@ export default function HomePage() {
 
       if (res?.data?.id != null) dispatch(addMessage(res.data))
       setText('')
-    }
-    catch {
+    } catch {
       setSendError(t('chat.sendFailed'))
       toast.error(t('toasts.networkError'))
-    }
-    finally {
+    } finally {
       setSending(false)
     }
   }
 
   if (!auth.isAuthenticated) return <Navigate to="/login" replace />
-
   if (loading) return <div className="p-4">{t('common.loading')}</div>
   if (loadError) return <div className="p-4">{loadError}</div>
 
@@ -357,7 +345,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-          {visibleMessages.map(m => (
+          {visibleMessages.map((m) => (
             <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
               <b>{m.username}</b>
               {': '}
@@ -373,7 +361,7 @@ export default function HomePage() {
             placeholder={t('chat.messagePlaceholder')}
             className="form-control"
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={(e) => setText(e.target.value)}
             disabled={sending}
           />
           <Button type="submit" disabled={sending || text.trim().length === 0}>

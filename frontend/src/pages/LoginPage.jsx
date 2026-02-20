@@ -9,6 +9,19 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const auth = useAuth()
 
+  const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    setStatus(null)
+    try {
+      const res = await axios.post('/api/v1/login', values)
+      auth.logIn(res.data)
+      navigate('/', { replace: true })
+    } catch {
+      setStatus(t('auth.wrongCreds'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   if (auth.isAuthenticated) {
     return <Navigate to="/" replace />
   }
@@ -19,20 +32,7 @@ export default function LoginPage() {
 
       <Formik
         initialValues={{ username: '', password: '' }}
-        onSubmit={async (values, { setSubmitting, setStatus }) => {
-          setStatus(null)
-          try {
-            const res = await axios.post('/api/v1/login', values)
-            auth.logIn(res.data)
-            navigate('/', { replace: true })
-          }
-          catch {
-            setStatus(t('auth.wrongCreds'))
-          }
-          finally {
-            setSubmitting(false)
-          }
-        }}
+        onSubmit={handleSubmit}
       >
         {({ isSubmitting, status }) => (
           <Form>

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { Formik } from 'formik'
-import * as yup from 'yup'
+import { buildRenameChannelSchema } from '../../validation/channelSchemas.js'
 
 export default function RenameChannelModal({
   show,
@@ -26,25 +26,7 @@ export default function RenameChannelModal({
     }, 0)
   }, [show])
 
-  const normalizedExisting = useMemo(
-    () => (existingNames ?? []).map(n => String(n).trim().toLowerCase()),
-    [existingNames],
-  )
-
-  const schema = yup.object({
-    name: yup
-      .string()
-      .transform(v => (v ?? '').trim())
-      .min(3, t('validation.usernameLen'))
-      .max(20, t('validation.usernameLen'))
-      .required(t('validation.required'))
-      .test('unique', t('validation.mustBeUnique'), (value) => {
-        const v = String(value ?? '').trim().toLowerCase()
-        const init = String(initialName ?? '').trim().toLowerCase()
-        if (v === init) return true
-        return !normalizedExisting.includes(v)
-      }),
-  })
+  const schema = buildRenameChannelSchema(t, initialName, existingNames)
 
   const safeHide = () => {
     if (!submitting) onHide()
@@ -60,7 +42,7 @@ export default function RenameChannelModal({
         enableReinitialize
         initialValues={{ name: initialName ?? '' }}
         validationSchema={schema}
-        onSubmit={values => onSubmit(String(values.name ?? '').trim())}
+        onSubmit={(values) => onSubmit(String(values.name ?? '').trim())}
       >
         {({
           handleSubmit, handleChange, values, errors, touched,
@@ -85,7 +67,11 @@ export default function RenameChannelModal({
                 </Form.Control.Feedback>
               </Form.Group>
 
-              {submitError && <div className="text-danger mt-2">{submitError}</div>}
+              {submitError && (
+                <div className="text-danger mt-2">
+                  {submitError}
+                </div>
+              )}
             </Modal.Body>
 
             <Modal.Footer>
