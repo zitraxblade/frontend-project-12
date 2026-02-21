@@ -150,7 +150,7 @@ export default function HomePage() {
     setModal({ type: 'add', channel: null })
   }
 
-   const openRemove = (channel) => {
+  const openRemove = (channel) => {
     setModalError(null)
     setModalSubmitting(false)
     setModal({ type: 'remove', channel })
