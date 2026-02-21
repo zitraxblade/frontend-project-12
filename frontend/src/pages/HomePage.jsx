@@ -150,17 +150,17 @@ export default function HomePage() {
     setModal({ type: 'add', channel: null })
   }
 
-  const openRemove = channel => {
-    setModalError(null)
-    setModalSubmitting(false)
-    setModal({ type: 'remove', channel })
-  }
+ const openRemove = (channel) => {
+  setModalError(null)
+  setModalSubmitting(false)
+  setModal({ type: 'remove', channel })
+}
 
-  const openRename = channel => {
-    setModalError(null)
-    setModalSubmitting(false)
-    setModal({ type: 'rename', channel })
-  }
+const openRename = (channel) => {
+  setModalError(null)
+  setModalSubmitting(false)
+  setModal({ type: 'rename', channel })
+}
 
   const closeModal = () => setModal({ type: null, channel: null })
 
@@ -355,7 +355,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-          {visibleMessages.map((m) => (
+          {visibleMessages.map(m => (
             <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
               <b>{m.username}</b>
               {': '}
