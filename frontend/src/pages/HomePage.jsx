@@ -41,9 +41,9 @@ export default function HomePage() {
   if (!socketRef.current) socketRef.current = createSocket()
   const socket = socketRef.current
 
-  const channels = useSelector((s) => s.channels.items)
-  const currentChannelId = useSelector((s) => s.channels.currentChannelId)
-  const messages = useSelector((s) => s.messages.items)
+  const channels = useSelector(s => s.channels.items)
+  const currentChannelId = useSelector(s => s.channels.currentChannelId)
+  const messages = useSelector(s => s.messages.items)
 
   const username = auth.username ?? 'unknown'
 
@@ -62,17 +62,17 @@ export default function HomePage() {
   const messagesEndRef = useRef(null)
 
   const existingChannelNames = useMemo(
-    () => channels.map((c) => String(c.name ?? '').trim().toLowerCase()),
+    () => channels.map(c => String(c.name ?? '').trim().toLowerCase()),
     [channels],
   )
 
   const currentChannel = useMemo(
-    () => channels.find((c) => String(c.id) === String(currentChannelId)),
+    () => channels.find(c => String(c.id) === String(currentChannelId)),
     [channels, currentChannelId],
   )
 
   const visibleMessages = useMemo(
-    () => messages.filter((m) => String(m.channelId) === String(currentChannelId)),
+    () => messages.filter(m => String(m.channelId) === String(currentChannelId)),
     [messages, currentChannelId],
   )
 
@@ -134,10 +134,10 @@ export default function HomePage() {
     socket.auth = { token: auth.token }
     socket.connect()
 
-    const onNewMessage = (payload) => dispatch(addMessage(payload))
-    const onNewChannel = (payload) => dispatch(addChannel(payload))
+    const onNewMessage = payload => dispatch(addMessage(payload))
+    const onNewChannel = payload => dispatch(addChannel(payload))
 
-    const onRemoveChannel = (payload) => {
+    const onRemoveChannel = payload => {
       const removedId = String(payload.id)
 
       dispatch(removeChannel(removedId))
@@ -148,7 +148,7 @@ export default function HomePage() {
       }
     }
 
-    const onRenameChannel = (payload) => dispatch(renameChannel(payload))
+    const onRenameChannel = payload => dispatch(renameChannel(payload))
 
     socket.on('newMessage', onNewMessage)
     socket.on('newChannel', onNewChannel)
@@ -376,7 +376,7 @@ export default function HomePage() {
           </div>
 
           <div className="chat-messages" ref={messagesWrapRef}>
-            {visibleMessages.map((m) => (
+            {visibleMessages.map(m => (
               <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
                 <b>{m.username}</b>
                 {': '}
@@ -393,7 +393,7 @@ export default function HomePage() {
               placeholder={t('chat.messagePlaceholder')}
               className="form-control"
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={e => setText(e.target.value)}
               disabled={sending}
               autoComplete="off"
             />
