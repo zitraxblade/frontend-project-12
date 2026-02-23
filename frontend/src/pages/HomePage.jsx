@@ -58,6 +58,8 @@ export default function HomePage() {
   const [modalSubmitting, setModalSubmitting] = useState(false)
   const [modalError, setModalError] = useState(null)
 
+  const messagesEndRef = useRef(null)
+
   const existingChannelNames = useMemo(
     () => channels.map(c => String(c.name ?? '').trim().toLowerCase()),
     [channels],
@@ -72,6 +74,11 @@ export default function HomePage() {
     () => messages.filter(m => String(m.channelId) === String(currentChannelId)),
     [messages, currentChannelId],
   )
+
+  // автоскролл до последнего сообщения
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [visibleMessages.length])
 
   useEffect(() => {
     if (!auth.token) {
@@ -150,13 +157,13 @@ export default function HomePage() {
     setModal({ type: 'add', channel: null })
   }
 
-  const openRemove = (channel) => {
+  const openRemove = channel => {
     setModalError(null)
     setModalSubmitting(false)
     setModal({ type: 'remove', channel })
   }
 
-  const openRename = (channel) => {
+  const openRename = channel => {
     setModalError(null)
     setModalSubmitting(false)
     setModal({ type: 'rename', channel })
@@ -276,139 +283,143 @@ export default function HomePage() {
   if (loadError) return <div className="p-4">{loadError}</div>
 
   return (
-    <div className="d-flex flex-grow-1" style={{ height: '100vh', minHeight: 0 }}>
-      <div className="border-end" style={{ width: 320, overflow: 'auto' }}>
-        <div className="d-flex justify-content-between align-items-center px-3 py-2">
-          <span className="fw-bold">{t('chat.channels')}</span>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline-primary"
-            onClick={openAdd}
-            aria-label={t('modals.addChannelTitle')}
-          >
-            +
-          </Button>
-        </div>
+    <div className="chat-page">
+      <div className="chat-layout">
+        <div className="border-end chat-sidebar">
+          <div className="d-flex justify-content-between align-items-center px-3 py-2">
+            <span className="fw-bold">{t('chat.channels')}</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline-primary"
+              onClick={openAdd}
+              aria-label={t('modals.addChannelTitle')}
+            >
+              +
+            </Button>
+          </div>
 
-        <div className="d-flex flex-column">
-          {channels.map((c) => {
-            const isActive = String(c.id) === String(currentChannelId)
+          <div className="d-flex flex-column">
+            {channels.map((c) => {
+              const isActive = String(c.id) === String(currentChannelId)
 
-            if (!c.removable) {
+              if (!c.removable) {
+                return (
+                  <Button
+                    key={c.id}
+                    type="button"
+                    variant={isActive ? 'secondary' : 'light'}
+                    className="w-100 rounded-0 text-start text-truncate"
+                    onClick={() => dispatch(setCurrentChannelId(c.id))}
+                  >
+                    <span className="me-1">#</span>
+                    {c.name}
+                  </Button>
+                )
+              }
+
               return (
-                <Button
-                  key={c.id}
-                  type="button"
-                  variant={isActive ? 'secondary' : 'light'}
-                  className="w-100 rounded-0 text-start text-truncate"
-                  onClick={() => dispatch(setCurrentChannelId(c.id))}
-                >
-                  <span className="me-1">#</span>
-                  {c.name}
-                </Button>
+                <Dropdown key={c.id} as={ButtonGroup} className="d-flex">
+                  <Button
+                    type="button"
+                    variant={isActive ? 'secondary' : 'light'}
+                    className="w-100 rounded-0 text-start text-truncate"
+                    onClick={() => dispatch(setCurrentChannelId(c.id))}
+                  >
+                    <span className="me-1">#</span>
+                    {c.name}
+                  </Button>
+
+                  <Dropdown.Toggle
+                    variant={isActive ? 'secondary' : 'light'}
+                    id={`channel-control-${c.id}`}
+                    className="rounded-0"
+                  >
+                    Управление каналом
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu renderOnMount>
+                    <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
+                      Удалить
+                    </Dropdown.Item>
+                    <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
+                      Переименовать
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
               )
-            }
-
-            return (
-              <Dropdown key={c.id} as={ButtonGroup} className="d-flex">
-                <Button
-                  type="button"
-                  variant={isActive ? 'secondary' : 'light'}
-                  className="w-100 rounded-0 text-start text-truncate"
-                  onClick={() => dispatch(setCurrentChannelId(c.id))}
-                >
-                  <span className="me-1">#</span>
-                  {c.name}
-                </Button>
-
-                <Dropdown.Toggle
-                  variant={isActive ? 'secondary' : 'light'}
-                  id={`channel-control-${c.id}`}
-                  className="rounded-0"
-                >
-                  Управление каналом
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu renderOnMount>
-                  <Dropdown.Item as="button" type="button" onClick={() => openRemove(c)}>
-                    Удалить
-                  </Dropdown.Item>
-                  <Dropdown.Item as="button" type="button" onClick={() => openRename(c)}>
-                    Переименовать
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="flex-grow-1 d-flex flex-column px-4 py-3" style={{ minWidth: 0 }}>
-        <div className="border-bottom pb-2 mb-3">
-          <div className="fw-bold">
-            {currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}
-          </div>
-          <div className="text-muted" style={{ fontSize: 12 }}>
-            {t('chat.messagesCount', { count: visibleMessages.length })}
+            })}
           </div>
         </div>
 
-        <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
-          {visibleMessages.map(m => (
-            <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
-              <b>{m.username}</b>
-              {': '}
-              {m.body}
+        <div className="chat-main">
+          <div className="border-bottom pb-2 mb-3">
+            <div className="fw-bold">
+              {currentChannel ? `# ${currentChannel.name}` : t('chat.channelNotSelected')}
             </div>
-          ))}
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              {t('chat.messagesCount', { count: visibleMessages.length })}
+            </div>
+          </div>
+
+          <div className="chat-messages">
+            {visibleMessages.map(m => (
+              <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
+                <b>{m.username}</b>
+                {': '}
+                {m.body}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form onSubmit={onSubmitMessage} className="d-flex gap-2 mt-3">
+            <input
+              type="text"
+              aria-label={t('chat.newMessageLabel')}
+              placeholder={t('chat.messagePlaceholder')}
+              className="form-control"
+              value={text}
+              onChange={e => setText(e.target.value)}
+              disabled={sending}
+              autoComplete="off"
+            />
+            <Button type="submit" disabled={sending || text.trim().length === 0}>
+              {sending ? t('common.sending') : t('common.send')}
+            </Button>
+          </form>
+
+          {sendError && <div className="text-danger mt-2">{sendError}</div>}
         </div>
 
-        <form onSubmit={onSubmitMessage} className="d-flex gap-2 mt-3">
-          <input
-            type="text"
-            aria-label={t('chat.newMessageLabel')}
-            placeholder={t('chat.messagePlaceholder')}
-            className="form-control"
-            value={text}
-            onChange={e => setText(e.target.value)}
-            disabled={sending}
-          />
-          <Button type="submit" disabled={sending || text.trim().length === 0}>
-            {sending ? t('common.sending') : t('common.send')}
-          </Button>
-        </form>
+        <AddChannelModal
+          show={modal.type === 'add'}
+          onHide={closeModal}
+          existingNames={existingChannelNames}
+          onSubmit={submitAdd}
+          submitting={modalSubmitting}
+          submitError={modalError}
+        />
 
-        {sendError && <div className="text-danger mt-2">{sendError}</div>}
+        <RemoveChannelModal
+          show={modal.type === 'remove'}
+          onHide={closeModal}
+          channelName={modal.channel?.name ?? ''}
+          onConfirm={submitRemove}
+          submitting={modalSubmitting}
+          submitError={modalError}
+        />
+
+        <RenameChannelModal
+          show={modal.type === 'rename'}
+          onHide={closeModal}
+          initialName={modal.channel?.name ?? ''}
+          existingNames={existingChannelNames}
+          onSubmit={submitRename}
+          submitting={modalSubmitting}
+          submitError={modalError}
+        />
       </div>
-
-      <AddChannelModal
-        show={modal.type === 'add'}
-        onHide={closeModal}
-        existingNames={existingChannelNames}
-        onSubmit={submitAdd}
-        submitting={modalSubmitting}
-        submitError={modalError}
-      />
-
-      <RemoveChannelModal
-        show={modal.type === 'remove'}
-        onHide={closeModal}
-        channelName={modal.channel?.name ?? ''}
-        onConfirm={submitRemove}
-        submitting={modalSubmitting}
-        submitError={modalError}
-      />
-
-      <RenameChannelModal
-        show={modal.type === 'rename'}
-        onHide={closeModal}
-        initialName={modal.channel?.name ?? ''}
-        existingNames={existingChannelNames}
-        onSubmit={submitRename}
-        submitting={modalSubmitting}
-        submitError={modalError}
-      />
     </div>
   )
 }

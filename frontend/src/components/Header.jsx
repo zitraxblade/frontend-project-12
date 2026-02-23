@@ -11,21 +11,13 @@ export default function Header() {
   }
 
   return (
-    <header
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '12px 24px',
-        borderBottom: '1px solid #ddd',
-      }}
-    >
-      <Link to="/" style={{ textDecoration: 'none', fontWeight: 700 }}>
+    <header className="app-header">
+      <Link to="/" className="app-header__logo">
         Hexlet Chat
       </Link>
 
       {auth.isAuthenticated && (
-        <button type="button" onClick={onLogout}>
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onLogout}>
           Выйти
         </button>
       )}

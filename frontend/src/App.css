@@ -1,42 +1,83 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* 4*/
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.app__content {
+  flex: 1;
+  overflow: hidden; /* скролл только там, где мы его разрешим */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Auth pages */
+.auth-page {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.auth-card {
+  width: 50vw;          /* половина экрана */
+  max-width: 560px;
+  min-width: 320px;
 }
 
-.card {
-  padding: 2em;
+/* Chat layout */
+.chat-page {
+  height: 100%;
+  display: flex;
+  justify-content: center; /* 1*/
+  padding: 12px 0;
 }
 
-.read-the-docs {
-  color: #888;
+.chat-layout {
+  width: 80vw;          /* минимум 80% экрана */
+  max-width: 1400px;
+  height: 100%;
+  display: flex;
+  min-height: 0;        /* 2*/
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.chat-sidebar {
+  width: 320px;
+  overflow: auto;
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow: auto;   /*3 */
+  min-height: 0;
+}
+
+.app-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+.app-header__logo {
+  text-decoration: none;
+  font-weight: 700;
+  color: inherit;
 }

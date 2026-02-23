@@ -44,76 +44,93 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 360 }}>
-      <h1>{t('auth.signupTitle')}</h1>
+    <div className="auth-page">
+      <div className="card shadow-sm auth-card">
+        <div className="card-body">
+          <h1 className="h3 mb-4">{t('auth.signupTitle')}</h1>
 
-      <Formik
-        initialValues={{ username: '', password: '', confirmPassword: '' }}
-        validationSchema={schema}
-        validateOnBlur
-        onSubmit={handleSubmit}
-      >
-        {({ isSubmitting, status, errors, touched }) => (
-          <Form>
-            <div style={{ marginBottom: 12 }}>
-              <label htmlFor="username" style={{ display: 'block', marginBottom: 6 }}>
-                {t('auth.username')}
-              </label>
-              <Field id="username" name="username" type="text" autoComplete="username" />
-              {touched.username && errors.username && (
-                <div style={{ color: 'crimson', fontSize: 12, marginTop: 4 }}>
-                  {errors.username}
+          <Formik
+            initialValues={{ username: '', password: '', confirmPassword: '' }}
+            validationSchema={schema}
+            validateOnBlur
+            onSubmit={handleSubmit}
+          >
+            {({ isSubmitting, status, errors, touched }) => (
+              <Form autoComplete="off">
+                <div className="mb-3">
+                  <label htmlFor="username" className="form-label">
+                    {t('auth.username')}
+                  </label>
+                  <Field
+                    id="username"
+                    name="username"
+                    type="text"
+                    autoComplete="off"
+                    className="form-control"
+                  />
+                  {touched.username && errors.username && (
+                    <div className="text-danger small mt-1">
+                      {errors.username}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <label htmlFor="password" style={{ display: 'block', marginBottom: 6 }}>
-                {t('auth.password')}
-              </label>
-              <Field id="password" name="password" type="password" autoComplete="new-password" />
-              {touched.password && errors.password && (
-                <div style={{ color: 'crimson', fontSize: 12, marginTop: 4 }}>
-                  {errors.password}
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">
+                    {t('auth.password')}
+                  </label>
+                  <Field
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="off"
+                    className="form-control"
+                  />
+                  {touched.password && errors.password && (
+                    <div className="text-danger small mt-1">
+                      {errors.password}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <label htmlFor="confirmPassword" style={{ display: 'block', marginBottom: 6 }}>
-                {t('auth.confirmPassword')}
-              </label>
-              <Field
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-              />
-              {touched.confirmPassword && errors.confirmPassword && (
-                <div style={{ color: 'crimson', fontSize: 12, marginTop: 4 }}>
-                  {errors.confirmPassword}
+                <div className="mb-3">
+                  <label htmlFor="confirmPassword" className="form-label">
+                    {t('auth.confirmPassword')}
+                  </label>
+                  <Field
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="off"
+                    className="form-control"
+                  />
+                  {touched.confirmPassword && errors.confirmPassword && (
+                    <div className="text-danger small mt-1">
+                      {errors.confirmPassword}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {status && (
-              <div style={{ marginBottom: 12, color: 'crimson' }}>
-                {status}
-              </div>
+                {status && (
+                  <div className="mb-3 text-danger">
+                    {status}
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary w-100" disabled={isSubmitting}>
+                  {isSubmitting ? t('common.sending') : t('auth.signUp')}
+                </button>
+
+                <div className="mt-3 small">
+                  {t('auth.haveAccount')}
+                  {' '}
+                  <Link to="/login">{t('auth.loginLink')}</Link>
+                </div>
+              </Form>
             )}
-
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? t('common.sending') : t('auth.signUp')}
-            </button>
-
-            <div style={{ marginTop: 12, fontSize: 12 }}>
-              {t('auth.haveAccount')}
-              {' '}
-              <Link to="/login">{t('auth.loginLink')}</Link>
-            </div>
-          </Form>
-        )}
-      </Formik>
+          </Formik>
+        </div>
+      </div>
     </div>
   )
 }

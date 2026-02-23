@@ -30,51 +30,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 360 }}>
-      <h1>{t('auth.loginTitle')}</h1>
+    <div className="auth-page">
+      <div className="card shadow-sm auth-card">
+        <div className="card-body">
+          <h1 className="h3 mb-4">{t('auth.loginTitle')}</h1>
 
-      <Formik
-        initialValues={{ username: '', password: '' }}
-        onSubmit={handleSubmit}
-      >
-        {({ isSubmitting, status }) => (
-          <Form>
-            <div style={{ marginBottom: 12 }}>
-              <label htmlFor="username" style={{ display: 'block', marginBottom: 6 }}>
-                {t('auth.yourNick')}
-              </label>
-              <Field id="username" name="username" type="text" autoComplete="username" />
-            </div>
+          <Formik
+            initialValues={{ username: '', password: '' }}
+            onSubmit={handleSubmit}
+          >
+            {({ isSubmitting, status }) => (
+              <Form autoComplete="off">
+                <div className="mb-3">
+                  <label htmlFor="username" className="form-label">
+                    {t('auth.yourNick')}
+                  </label>
+                  <Field
+                    id="username"
+                    name="username"
+                    type="text"
+                    autoComplete="off"
+                    className="form-control"
+                  />
+                </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <label htmlFor="password" style={{ display: 'block', marginBottom: 6 }}>
-                {t('auth.password')}
-              </label>
-              <Field id="password" name="password" type="password" autoComplete="current-password" />
-            </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">
+                    {t('auth.password')}
+                  </label>
+                  <Field
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="off"
+                    className="form-control"
+                  />
+                </div>
 
-            {status && (
-              <div style={{ marginBottom: 12, color: 'crimson' }}>
-                {status}
-              </div>
+                {status && (
+                  <div className="mb-3 text-danger">
+                    {status}
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary w-100" disabled={isSubmitting}>
+                  {t('auth.signIn')}
+                </button>
+
+                <div className="mt-3 small">
+                  {t('auth.testUser')}
+                </div>
+
+                <div className="mt-3 small">
+                  {t('auth.noAccount')}
+                  {' '}
+                  <Link to="/signup">{t('auth.registerLink')}</Link>
+                </div>
+              </Form>
             )}
-
-            <button type="submit" disabled={isSubmitting}>
-              {t('auth.signIn')}
-            </button>
-
-            <div style={{ marginTop: 12, fontSize: 12 }}>
-              {t('auth.testUser')}
-            </div>
-
-            <div style={{ marginTop: 12, fontSize: 12 }}>
-              {t('auth.noAccount')}
-              {' '}
-              <Link to="/signup">{t('auth.registerLink')}</Link>
-            </div>
-          </Form>
-        )}
-      </Formik>
+          </Formik>
+        </div>
+      </div>
     </div>
   )
 }
