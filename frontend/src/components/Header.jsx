@@ -17,7 +17,7 @@ export default function Header() {
       </Link>
 
       {auth.isAuthenticated && (
-        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onLogout}>
+        <button type="button" className="btn btn-outline-secondary" onClick={onLogout}>
           Выйти
         </button>
       )}

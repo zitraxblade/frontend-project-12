@@ -58,6 +58,7 @@ export default function HomePage() {
   const [modalSubmitting, setModalSubmitting] = useState(false)
   const [modalError, setModalError] = useState(null)
 
+  const messagesWrapRef = useRef(null)
   const messagesEndRef = useRef(null)
 
   const existingChannelNames = useMemo(
@@ -75,10 +76,22 @@ export default function HomePage() {
     [messages, currentChannelId],
   )
 
-  // автоскролл до последнего сообщения
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [visibleMessages.length])
+  }
+
+  const isNearBottom = () => {
+    const el = messagesWrapRef.current
+    if (!el) return true
+    const threshold = 80
+    return el.scrollHeight - el.scrollTop - el.clientHeight < threshold
+  }
+
+  useEffect(() => {
+    if (isNearBottom()) {
+      scrollToBottom()
+    }
+  }, [visibleMessages.length, currentChannelId])
 
   useEffect(() => {
     if (!auth.token) {
@@ -102,12 +115,10 @@ export default function HomePage() {
 
         dispatch(setChannels({ channels: ch, currentChannelId: curId }))
         dispatch(setMessages(msgs))
-      }
-      catch {
+      } catch {
         setLoadError(t('chat.loadFailed'))
         toast.error(t('toasts.loadFailed'))
-      }
-      finally {
+      } finally {
         setLoading(false)
       }
     }
@@ -124,7 +135,7 @@ export default function HomePage() {
     const onNewMessage = payload => dispatch(addMessage(payload))
     const onNewChannel = payload => dispatch(addChannel(payload))
 
-    const onRemoveChannel = (payload) => {
+    const onRemoveChannel = payload => {
       const removedId = String(payload.id)
 
       dispatch(removeChannel(removedId))
@@ -157,13 +168,13 @@ export default function HomePage() {
     setModal({ type: 'add', channel: null })
   }
 
-  const openRemove = (channel) => {
+  const openRemove = channel => {
     setModalError(null)
     setModalSubmitting(false)
     setModal({ type: 'remove', channel })
   }
 
-  const openRename = (channel) => {
+  const openRename = channel => {
     setModalError(null)
     setModalSubmitting(false)
     setModal({ type: 'rename', channel })
@@ -171,7 +182,7 @@ export default function HomePage() {
 
   const closeModal = () => setModal({ type: null, channel: null })
 
-  const submitAdd = async (name) => {
+  const submitAdd = async name => {
     setModalSubmitting(true)
     setModalError(null)
 
@@ -184,17 +195,15 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelCreated'))
       closeModal()
-    }
-    catch {
+    } catch {
       setModalError(t('modals.createFailed'))
       toast.error(t('modals.createFailed'))
-    }
-    finally {
+    } finally {
       setModalSubmitting(false)
     }
   }
 
-  const submitRename = async (name) => {
+  const submitRename = async name => {
     const ch = modal.channel
     if (!ch) return
 
@@ -208,12 +217,10 @@ export default function HomePage() {
       dispatch(renameChannel({ id: ch.id, name: safeName }))
       toast.success(t('toasts.channelRenamed'))
       closeModal()
-    }
-    catch {
+    } catch {
       setModalError(t('modals.renameFailed'))
       toast.error(t('modals.renameFailed'))
-    }
-    finally {
+    } finally {
       setModalSubmitting(false)
     }
   }
@@ -238,17 +245,15 @@ export default function HomePage() {
 
       toast.success(t('toasts.channelRemoved'))
       closeModal()
-    }
-    catch {
+    } catch {
       setModalError(t('modals.removeFailed'))
       toast.error(t('modals.removeFailed'))
-    }
-    finally {
+    } finally {
       setModalSubmitting(false)
     }
   }
 
-  const onSubmitMessage = async (e) => {
+  const onSubmitMessage = async e => {
     e.preventDefault()
 
     const raw = text.trim()
@@ -268,12 +273,10 @@ export default function HomePage() {
 
       if (res?.data?.id != null) dispatch(addMessage(res.data))
       setText('')
-    }
-    catch {
+    } catch {
       setSendError(t('chat.sendFailed'))
       toast.error(t('toasts.networkError'))
-    }
-    finally {
+    } finally {
       setSending(false)
     }
   }
@@ -300,7 +303,7 @@ export default function HomePage() {
           </div>
 
           <div className="d-flex flex-column">
-            {channels.map((c) => {
+            {channels.map(c => {
               const isActive = String(c.id) === String(currentChannelId)
 
               if (!c.removable) {
@@ -362,7 +365,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="chat-messages">
+          <div className="chat-messages" ref={messagesWrapRef}>
             {visibleMessages.map(m => (
               <div key={m.id} className="mb-2" style={{ wordBreak: 'break-word' }}>
                 <b>{m.username}</b>
