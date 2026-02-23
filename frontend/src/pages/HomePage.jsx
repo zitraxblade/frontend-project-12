@@ -157,17 +157,17 @@ export default function HomePage() {
     setModal({ type: 'add', channel: null })
   }
 
-const openRemove = (channel) => {
-  setModalError(null)
-  setModalSubmitting(false)
-  setModal({ type: 'remove', channel })
-}
+  const openRemove = (channel) => {
+    setModalError(null)
+    setModalSubmitting(false)
+    setModal({ type: 'remove', channel })
+  }
 
-const openRename = (channel) => {
-  setModalError(null)
-  setModalSubmitting(false)
-  setModal({ type: 'rename', channel })
-}
+  const openRename = (channel) => {
+    setModalError(null)
+    setModalSubmitting(false)
+    setModal({ type: 'rename', channel })
+  }
 
   const closeModal = () => setModal({ type: null, channel: null })
 
