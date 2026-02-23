@@ -137,7 +137,7 @@ export default function HomePage() {
     const onNewMessage = payload => dispatch(addMessage(payload))
     const onNewChannel = payload => dispatch(addChannel(payload))
 
-    const onRemoveChannel = payload => {
+    const onRemoveChannel = (payload) => {
       const removedId = String(payload.id)
 
       dispatch(removeChannel(removedId))
